@@ -21,3 +21,8 @@
 
 # Composer networks
 **/*.bna
+
+**/*.class
+**/bin
+.idea
+*.iml
