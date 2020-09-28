@@ -19,7 +19,7 @@
     <maven.surefire.plugin.version>2.19</maven.surefire.plugin.version>
     <maven.dependency.plugin.version>3.0.1</maven.dependency.plugin.version>
     <postgresql.version>9.1-901-1.jdbc4</postgresql.version>
-    <commons-lang3.version>3.8.1</commons-lang3.version>
+    <commons-lang3.version>3.4</commons-lang3.version>
   </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
