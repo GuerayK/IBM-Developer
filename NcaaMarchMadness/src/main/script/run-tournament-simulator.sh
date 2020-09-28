@@ -33,6 +33,10 @@ if [[ "$DEBUG" == "true" ]]; then echo "Script arguments: $@"; fi
 # Below is an example that works on my Mac.
 # Change this to match your source location.
 ROOT_DIR=/Users/sperry/home/development/projects/IBM-Developer/NcaaMarchMadness
+NETWORK_PROPERTIES_FILE=/Users/sperry/home/development/projects/ScienceFair-2021/network.properties
+if [[ "$DEBUG" == "true" ]]; then echo "Network properties file: $NETWORK_PROPERTIES_FILE"; fi
+
+JAVA_OPTS=-Dnetwork.properties.file=$NETWORK_PROPERTIES_FILE
 
 # Make sure ROOT_DIR is set or bail out
 if [[ -z "$ROOT_DIR" ]]
@@ -54,7 +58,7 @@ SPRING_FRAMEWORK_VERSION=4.3.6.RELEASE
 CP=\
 $LIB_DIR/neuroph-2.94.jar:\
 $LIB_DIR/postgresql-9.1-901-1.jdbc4.jar:\
-$LIB_DIR/commons-lang3-3.4.jar:\
+$LIB_DIR/commons-lang3-3.8.1.jar:\
 $LIB_DIR/spring-context-$SPRING_FRAMEWORK_VERSION.jar:\
 $LIB_DIR/spring-core-$SPRING_FRAMEWORK_VERSION.jar:\
 $LIB_DIR/spring-beans-$SPRING_FRAMEWORK_VERSION.jar:\

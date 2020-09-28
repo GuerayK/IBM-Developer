@@ -37,6 +37,11 @@ if [[ "$DEBUG" == "true" ]]; then echo "Script arguments: $@"; fi
 # Below is an example that works on my Mac.
 # Change this to match your source location.
 ROOT_DIR=/Users/sperry/home/development/projects/IBM-Developer/NcaaMarchMadness
+NETWORK_PROPERTIES_FILE=/Users/sperry/home/development/projects/ScienceFair-2021/network.properties
+if [[ "$DEBUG" == "true" ]]; then echo "Network properties file: $NETWORK_PROPERTIES_FILE"; fi
+
+JAVA_OPTS=-Dnetwork.properties.file=$NETWORK_PROPERTIES_FILE
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home
 
 # Make sure ROOT_DIR is set or bail out
 if [[ -z "$ROOT_DIR" ]]
@@ -73,4 +78,4 @@ $LIB_DIR/slf4j-api-1.7.22.jar
 if [ "$DEBUG" == "true" ]; then echo "CLASSPATH = $CP"; fi
 
 # Fire up the program
-java $JAVA_OPTS -cp $CP:$ROOT_DIR/target/classes com.makotojava.ncaabb.generation.DataCreator $@
+$JAVA_HOME/bin/java $JAVA_OPTS -cp $CP:$ROOT_DIR/target/classes com.makotojava.ncaabb.generation.DataCreator $@
