@@ -218,6 +218,18 @@ public class DataCreator {
   }
 
   /**
+   * Stub to isolate the actual data normalizer to this location so it can be swapped out.
+   * Same as above, but for static calls.
+   * <p>
+   * It probably goes without saying that these two methods must be in lock step.
+   */
+  public static NormalizedData createDataNormalizer(SeasonAnalytics seasonAnalytics,
+                                                    SeasonData team1SeasonData,
+                                                    SeasonData team2SeasonData) {
+    return new NormalizedData(seasonAnalytics, team1SeasonData, team2SeasonData);
+  }
+
+  /**
    * Entry point for creating the training data for the specified years.
    *
    * @param yearsForTraining The years for which training data is to be
@@ -334,7 +346,7 @@ public class DataCreator {
     DataSetRow ret;
     //
     // Normalize the data
-    NormalizedData normalizedData = new NormalizedData(seasonAnalytics, team1SeasonData, team2SeasonData);
+    NormalizedData normalizedData = createDataNormalizer(seasonAnalytics,team1SeasonData, team2SeasonData);
     //
     // Process the results into a double[] that Neuroph likes
     double[] inputAndOutput = normalizedData.asInputAndOutput();
