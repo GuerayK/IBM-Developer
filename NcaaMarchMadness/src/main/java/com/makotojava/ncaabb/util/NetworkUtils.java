@@ -15,6 +15,12 @@
  */
 package com.makotojava.ncaabb.util;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.neuroph.core.Layer;
+import org.neuroph.core.NeuralNetwork;
+import org.neuroph.nnet.learning.BackPropagation;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -24,12 +30,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.neuroph.core.Layer;
-import org.neuroph.core.NeuralNetwork;
-import org.neuroph.nnet.learning.BackPropagation;
 
 /**
  * A set of utilities that keeps all the code together for commonly performed
@@ -267,4 +267,13 @@ public class NetworkUtils {
     return sb.toString();
   }
 
+  public static String computeDl4jCsvDataFileName(final Integer[] years) {
+    StringBuilder sb = new StringBuilder();
+    for (Integer year: years) {
+      sb.append("_");
+      sb.append(year.toString());
+    }
+    return fetchTrainingDirectoryAndCreateIfNecessary() + File.separator +
+      "SeasonData" + sb.toString() + ".csv";
+  }
 }
