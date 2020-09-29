@@ -164,9 +164,14 @@ public class CsvDataCreator extends DataCreator {
           String[] outputLine = new String[row.size()];
           int index = 0;
           for (Double value : row) {
-            outputLine[index++] = value.toString();
+            if (index == row.size() - 1) {
+              outputLine[index] = String.valueOf(value.intValue());
+            } else {
+              outputLine[index] = value.toString();
+            }
+            index++;
           }
-          csvWriter.writeNext(outputLine);
+          csvWriter.writeNext(outputLine, false);
         });
       }
     } catch (IOException e) {
