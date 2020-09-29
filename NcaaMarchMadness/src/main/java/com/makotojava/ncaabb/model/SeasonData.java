@@ -15,10 +15,10 @@
  */
 package com.makotojava.ncaabb.model;
 
+import com.makotojava.ncaabb.util.StatsUtils;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
-import com.makotojava.ncaabb.util.StatsUtils;
 
 /**
  * This class represents the v_season_data view, which is used for pretty much
@@ -155,7 +155,7 @@ public class SeasonData {
   }
 
   public BigDecimal getNum3pAttemptsPerGame() {
-    return num3pAttemptsPerGame;
+    return (num3pAttemptsPerGame == null) ? BigDecimal.ZERO : num3pAttemptsPerGame;
   }
 
   public void setNum3pAttemptsPerGame(BigDecimal num3pAttemptsPerGame) {
@@ -164,7 +164,7 @@ public class SeasonData {
   }
 
   public BigDecimal getT3pPercentage() {
-    return t3pPercentage;
+    return (t3pPercentage == null) ? BigDecimal.ZERO : t3pPercentage;
   }
 
   public void setT3pPercentage(BigDecimal t3pPercentage) {
@@ -269,7 +269,7 @@ public class SeasonData {
   }
 
   public BigDecimal getOppTurnoversPerGame() {
-    return oppTurnoversPerGame;
+    return (oppTurnoversPerGame == null) ? BigDecimal.ZERO : oppTurnoversPerGame;
   }
 
   public void setOppTurnoversPerGame(BigDecimal oppTurnoversPerGame) {
