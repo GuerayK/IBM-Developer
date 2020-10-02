@@ -24,7 +24,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
@@ -117,7 +116,7 @@ public class Networks {
    * Parses the specified network structure into an int array.
    * See getNetworks() for a description of the structure.
    */
-  protected static int[] parseNetworkStructure(String networkStructure) {
+  public static int[] parseNetworkStructure(String networkStructure) {
     List<Integer> structure = new ArrayList<>();
     StringTokenizer strtok = new StringTokenizer(networkStructure, "x");
     while (strtok.hasMoreTokens()) {

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="CsvDataCreator 2019" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="com.makotojava.ncaabb.generation.CsvDataCreator" />
+    <option name="MAIN_CLASS_NAME" value="com.makotojava.ncaabb.generation.CsvTrainingDataCreator" />
     <module name="NcaaMarchMadness" />
     <option name="PROGRAM_PARAMETERS" value="2019" />
     <option name="VM_PARAMETERS" value="-Dnetwork.properties.file=$PROJECT_DIR$/../../ScienceFair-2021/network.properties" />

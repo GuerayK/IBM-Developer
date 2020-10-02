@@ -14,10 +14,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class CsvDataCreator extends DataCreator {
+public class CsvTrainingDataCreator extends DataCreator {
   private static final Logger log = Logger.getLogger(DataCreator.class);
 
   /**
@@ -26,7 +25,7 @@ public class CsvDataCreator extends DataCreator {
    * @param applicationContext The Spring ApplicationContext object that
    *                           contains the environment.
    */
-  public CsvDataCreator(final ApplicationContext applicationContext) {
+  public CsvTrainingDataCreator(final ApplicationContext applicationContext) {
     super(applicationContext);
   }
 
@@ -37,7 +36,7 @@ public class CsvDataCreator extends DataCreator {
     }
     //
     // Let's kick the tires and light the fires
-    CsvDataCreator trainingDataCreator = new CsvDataCreator(
+    CsvTrainingDataCreator trainingDataCreator = new CsvTrainingDataCreator(
       new AnnotationConfigApplicationContext(ApplicationConfig.class));
     //
     // First let's figure out what year(s) we are running.
@@ -50,55 +49,9 @@ public class CsvDataCreator extends DataCreator {
     trainingDataCreator.go(yearsForTraining);
   }
 
-  public void go(Integer[] yearsForTraining) {
-    List<List<Double>> dataRows = new ArrayList<>();
-    //
-    // Now we create the training data for those years
-    for (Integer year : yearsForTraining) {
-      //
-      // Pull the current year's tournament results
-      List<TournamentResult> tournamentResults = pullTournamentResults(year);
-      //
-      // Loop through each game played in the current year's tournament.
-      // Pull the season data for both winner and loser.
-      // Create a row of training data with the winner as the LHS of the data, loser as RHS.
-      // Create another row that is just the opposite.
-      // The idea is to correct for positional bias in the model. If the winner's data
-      /// is always on the LHS, then whatever data is run in the final simulation/predication
-      /// on the LHS will be the winner. However, for the true prediction, we don't know
-      /// who the winner is, because the games haven't been played.
-      for (TournamentResult tournamentResult : tournamentResults) {
-        //
-        // Each tournament game
-        String winningTeamName = tournamentResult.getWinningTeamName();
-        String losingTeamName = tournamentResult.getLosingTeamName();
-        SeasonData seasonDataWinning = pullSeasonData(year, winningTeamName);
-        SeasonData seasonDataLosing = pullSeasonData(year, losingTeamName);
-        // Attempt to eliminate bias in the position
-        List<Double> rowWin = writeSeasonData(seasonDataWinning, seasonDataLosing, 1.0);
-        List<Double> rowLoss = writeSeasonData(seasonDataLosing, seasonDataWinning, 0.0);
-        dataRows.add(rowWin);
-        dataRows.add(rowLoss);
-      }
-      if (log.isTraceEnabled()) {
-        log.trace("Dumping out training data:");
-        for (List<Double> row : dataRows) {
-          log.trace("Row: " + ReflectionToStringBuilder.toString(row));
-        }
-      }
-    }
-    // Shuffle the data
-    Collections.shuffle(dataRows);
-    log.info("*********** SAVING CSV DATA **************");
-    String filename = NetworkUtils.computeDl4jCsvDataFileName(yearsForTraining);
-    saveCsvFile(filename, dataRows);
-    int numberOfRows = dataRows.size();
-    log.info("Saved " + numberOfRows + " rows of CSV data to file: '" + filename + "'");
-  }
-
-  private List<Double> writeSeasonData(final SeasonData seasonDataWinning,
-                                       final SeasonData seasonDataLosing,
-                                       final Double result) {
+  public static List<Double> writeSeasonData(final SeasonData seasonDataWinning,
+                                             final SeasonData seasonDataLosing,
+                                             final Double result) {
     List<Double> ret = new ArrayList<>();
     // Offense
     ret.add(seasonDataWinning.getAvgPointsPerGame().doubleValue());
@@ -152,12 +105,14 @@ public class CsvDataCreator extends DataCreator {
     ret.add(seasonDataLosing.getTurnoversPerGame().doubleValue());
     ret.add(seasonDataLosing.getFoulsPerGame().doubleValue());
     ret.add(seasonDataLosing.getNumDq().doubleValue());
-    // Class - Win (1.0) or Lose (0.0)
-    ret.add(result);
+    // Class - Win (1.0) or Lose (0.0) - only if not null
+    if (result != null) {
+      ret.add(result);
+    }
     return ret;
   }
 
-  private void saveCsvFile(final String filename, final List<List<Double>> dataRows) {
+  public static void saveCsvFileWithResults(final String filename, final List<List<Double>> dataRows) {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
       try (CSVWriter csvWriter = new CSVWriter(writer)) {
         dataRows.forEach(row -> {
@@ -180,5 +135,74 @@ public class CsvDataCreator extends DataCreator {
       throw new RuntimeException(errorMessage, e);
     }
   }
+
+  public static void saveCsvFileWithoutResults(final String filename, final List<List<Double>> dataRows) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+      try (CSVWriter csvWriter = new CSVWriter(writer)) {
+        dataRows.forEach(row -> {
+          String[] outputLine = new String[row.size()];
+          int index = 0;
+          for (Double value : row) {
+            outputLine[index] = value.toString();
+            index++;
+          }
+          csvWriter.writeNext(outputLine, false);
+        });
+      }
+    } catch (IOException e) {
+      String errorMessage = String.format("IOException occurred writing file '%s': %s", filename, e.getLocalizedMessage());
+      log.error(errorMessage, e);
+      throw new RuntimeException(errorMessage, e);
+    }
+  }
+
+  public void go(Integer[] yearsForTraining) {
+    List<List<Double>> dataRows = new ArrayList<>();
+    //
+    // Now we create the training data for those years
+    for (Integer year : yearsForTraining) {
+      //
+      // Pull the current year's tournament results
+      List<TournamentResult> tournamentResults = pullTournamentResults(year);
+      //
+      // Loop through each game played in the current year's tournament.
+      // Pull the season data for both winner and loser.
+      // Create a row of training data with the winner as the LHS of the data, loser as RHS.
+      // Create another row that is just the opposite.
+      // The idea is to correct for positional bias in the model. If the winner's data
+      /// is always on the LHS, then whatever data is run in the final simulation/predication
+      /// on the LHS will be the winner. However, for the true prediction, we don't know
+      /// who the winner is, because the games haven't been played.
+      for (TournamentResult tournamentResult : tournamentResults) {
+        //
+        // Each tournament game
+        String winningTeamName = tournamentResult.getWinningTeamName();
+        String losingTeamName = tournamentResult.getLosingTeamName();
+        SeasonData seasonDataWinning = pullSeasonData(year, winningTeamName);
+        SeasonData seasonDataLosing = pullSeasonData(year, losingTeamName);
+        // Attempt to eliminate bias in the position
+        List<Double> rowWin = writeSeasonData(seasonDataWinning, seasonDataLosing, 1.0);
+        List<Double> rowLoss = writeSeasonData(seasonDataLosing, seasonDataWinning, 0.0);
+//        List<Double> rowWin = writeSeasonData(seasonDataWinning, seasonDataLosing, null);
+//        List<Double> rowLoss = writeSeasonData(seasonDataLosing, seasonDataWinning, null);
+        dataRows.add(rowWin);
+        dataRows.add(rowLoss);
+      }
+      if (log.isTraceEnabled()) {
+        log.trace("Dumping out training data:");
+        for (List<Double> row : dataRows) {
+          log.trace("Row: " + ReflectionToStringBuilder.toString(row));
+        }
+      }
+    }
+    // Shuffle the data
+    //Collections.shuffle(dataRows);
+    log.info("*********** SAVING CSV DATA **************");
+    String filename = NetworkUtils.computeDl4jCsvTrainingDataFileName(yearsForTraining);
+    saveCsvFileWithResults(filename, dataRows);
+    int numberOfRows = dataRows.size();
+    log.info("Saved " + numberOfRows + " rows of CSV data to file: '" + filename + "'");
+  }
+
 
 }

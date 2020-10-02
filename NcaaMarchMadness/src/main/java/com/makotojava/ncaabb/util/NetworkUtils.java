@@ -59,7 +59,7 @@ public class NetworkUtils {
    */
   public static void validateYear(Integer year) {
     if (year < 2010 || year > 2019) {
-      throw new RuntimeException("Invalid year: " + year + " (must be between 2011 and 2017, inclusive)");
+      throw new RuntimeException("Invalid year: " + year + " (must be between 2010 and 2019, inclusive)");
     }
   }
 
@@ -267,7 +267,7 @@ public class NetworkUtils {
     return sb.toString();
   }
 
-  public static String computeDl4jCsvDataFileName(final Integer[] years) {
+  public static String computeDl4jCsvTrainingDataFileName(final Integer[] years) {
     StringBuilder sb = new StringBuilder();
     for (Integer year: years) {
       sb.append("_");
@@ -275,5 +275,15 @@ public class NetworkUtils {
     }
     return fetchTrainingDirectoryAndCreateIfNecessary() + File.separator +
       "SeasonData" + sb.toString() + ".csv";
+  }
+
+  public static String computeDl4jCsvSimulationDataFileName(final Integer tournamentYear,
+                                                            final String homeTeamName) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(tournamentYear);
+    sb.append('_');
+    sb.append(homeTeamName);
+
+    return fetchSimulationDirectoryAndCreateIfNecessary() + File.separator + sb.toString() + ".csv";
   }
 }
