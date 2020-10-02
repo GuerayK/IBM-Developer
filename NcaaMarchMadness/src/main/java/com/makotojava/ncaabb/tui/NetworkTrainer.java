@@ -55,24 +55,18 @@ public class NetworkTrainer {
     NetworkParameters networkParameters = fetchNetworkParameters(scanner);
     //
     // Get the season data for the teams in the training years
-    DataSet trainingData = fetchTrainingData(
-      networkParameters.getYearsToTrainAndEvaluateNetwork().get(0),
-      seasonDataDao,
-      tournamentResultDao,
-      networkParameters
-    );
+    List<Integer> yearsToTrain = networkParameters.getYearsToTrainAndEvaluateNetwork().get(0);
+    RecordReaderDataSetIterator trainingDataIterator = createIterator(yearsToTrain, seasonDataDao, tournamentResultDao, networkParameters);
     //
     // Get the season data for the teams in the evaluation years
-    DataSet evaluationData = fetchEvaluationData(
-      networkParameters.getYearsToTrainAndEvaluateNetwork().get(1),
-      seasonDataDao,
-      tournamentResultDao,
-      networkParameters);
+    List<Integer> yearsToEvaluate = networkParameters.getYearsToTrainAndEvaluateNetwork().get(1);
+    RecordReaderDataSetIterator evaluationDataIterator = createIterator(yearsToEvaluate, seasonDataDao, tournamentResultDao, networkParameters);
     //
     // Create the network definition
+    MultiLayerConfiguration configuration = configureNetwork(networkParameters);
     //
     // Train the network. If nothing goes wrong, return the trained network.
-    MultiLayerNetwork network = trainNetwork(networkParameters, trainingData, evaluationData);
+    MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
     ret = Optional.of(network);
     return ret;
   }
@@ -120,10 +114,10 @@ public class NetworkTrainer {
     return ret;
   }
 
-  private static DataSet fetchTrainingData(final List<Integer> yearsForTraining,
-                                           final SeasonDataDao seasonDataDao,
-                                           final TournamentResultDao tournamentResultDao,
-                                           final NetworkParameters networkParameters) throws IOException, InterruptedException {
+  private static RecordReaderDataSetIterator createIterator(final List<Integer> yearsForTraining,
+                                                            final SeasonDataDao seasonDataDao,
+                                                            final TournamentResultDao tournamentResultDao,
+                                                            final NetworkParameters networkParameters) throws IOException, InterruptedException {
     StringWriter stringWriter = new StringWriter();
     CSVWriter csvWriter = new CSVWriter(stringWriter);
     for (Integer year : yearsForTraining) {
@@ -134,8 +128,8 @@ public class NetworkTrainer {
         SeasonData seasonDataWinning = pullSeasonData(year, winningTeamName, seasonDataDao);
         SeasonData seasonDataLosing = pullSeasonData(year, losingTeamName, seasonDataDao);
         // Attempt to eliminate positional bias
-        List<Double> rowWinDouble = writeSeasonData(networkParameters, seasonDataWinning, seasonDataLosing, 1.0);
-        List<Double> rowLossDouble = writeSeasonData(networkParameters, seasonDataLosing, seasonDataWinning, 0.0);
+        List<Double> rowWinDouble = writeSeasonData(seasonDataWinning, seasonDataLosing, 1.0);
+        List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, seasonDataWinning, 0.0);
         //
         // Transform the data, then write out the data
         String[] rowWinString = transformRow(rowWinDouble, networkParameters);
@@ -150,17 +144,19 @@ public class NetworkTrainer {
     RecordReader recordReader = new CSVRecordReader(0, ',');
     recordReader.initialize(new InputStreamInputSplit(new ByteArrayInputStream(CharStreams.toString(new StringReader(stringBuffer.toString())).getBytes())));
     RecordReaderDataSetIterator iterator = new RecordReaderDataSetIterator(recordReader, 1000, networkParameters.getNumberOfInputs(), networkParameters.getNumberOfOutputs());
-    return iterator.next();
+    return iterator;
   }
 
-  private static MultiLayerNetwork trainNetwork(final NetworkParameters networkParameters,
-                                                final DataSet trainingData,
-                                                final DataSet evaluationData) {
+  private static MultiLayerNetwork trainNetwork(final MultiLayerConfiguration configuration,
+                                                final NetworkParameters networkParameters,
+                                                final RecordReaderDataSetIterator trainingDataIterator,
+                                                final RecordReaderDataSetIterator evaluationDataIterator) {
+    log.info("Training network...");
+    trainingDataIterator.setCollectMetaData(true);
+    DataSet trainingData = trainingDataIterator.next();
+    DataSet evaluationData = evaluationDataIterator.next();
     normalizeTrainingData(trainingData, evaluationData);
 
-    //
-    // Configure network
-    MultiLayerConfiguration configuration = configureNetwork(networkParameters);
     //
     // Fit the model
     int numberOfEpochs = networkParameters.getNumberOfEpochs();
@@ -178,6 +174,7 @@ public class NetworkTrainer {
     eval.eval(evaluationData.getLabels(), output, evaluationData.getExampleMetaData(RecordMetaData.class)); // Note we are passing in the test set metadata here
     System.out.println(eval.stats());
 
+    log.info("Training network...DONE");
     return model;
   }
 
@@ -187,9 +184,11 @@ public class NetworkTrainer {
     normalizer.fit(trainingData);           // Collect the statistics (mean/stdev) from the training data. This does not modify the input data
     normalizer.transform(trainingData);     // Apply normalization to the training data
     normalizer.transform(testData);         // Apply normalization to the test data. This is using statistics calculated from the *training* set
+    log.info("Normalizing data...DONE");
   }
 
   private static MultiLayerConfiguration configureNetwork(final NetworkParameters networkParameters) {
+    log.info("Configuring network...");
     NeuralNetConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
       .seed(3)
       .activation(networkParameters.getActivationFunction())
@@ -202,9 +201,11 @@ public class NetworkTrainer {
       listBuilder.layer(addHiddenLayer(networkLayout[index], networkLayout[index + 1]));
     }
     // Build the final layer and call build to create the MultiLayerConfiguration and return it
-    return listBuilder.layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+    MultiLayerConfiguration ret = listBuilder.layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
       .activation(Activation.SOFTMAX).nIn(networkLayout[networkLayout.length - 2]).nOut(networkLayout[networkLayout.length - 1]).build())
       .build();
+    log.info("Configuring network...DONE");
+    return ret;
   }
 
   private static DenseLayer addHiddenLayer(final int numberOfInputs, final int numberOfOutputs) {
@@ -214,6 +215,16 @@ public class NetworkTrainer {
       .build();
   }
 
+  /**
+   * Transform the data from Double to Strings.
+   * Pull only the data the user has selected, which is contained in the
+   * NetworkParameters.selectedElements property.
+   *
+   * @param data              The input data (Double objects)
+   * @param networkParameters Metadata to control how the transform is done
+   * @return String[] that contains only the data elements the user wants
+   * to include to train, evaluate, and run the network.
+   */
   private static String[] transformRow(final List<Double> data,
                                        final NetworkParameters networkParameters) {
     // Note: networkParameters is future-proofing, at some point the user can specify the specific fields they want from the data
@@ -233,13 +244,6 @@ public class NetworkTrainer {
     // Set the label (that is, the win/loss value AS AN INTEGER- THIS IS VERY IMPORTANT)
     ret[index] = String.valueOf(data.get(index).intValue());
     return ret;
-  }
-
-  private static DataSet fetchEvaluationData(final List<Integer> years,
-                                             final SeasonDataDao seasonDataDao,
-                                             final TournamentResultDao tournamentResultDao,
-                                             final NetworkParameters networkParameters) throws IOException, InterruptedException {
-    return fetchTrainingData(years,seasonDataDao,tournamentResultDao,networkParameters);
   }
 
   /**
@@ -266,8 +270,16 @@ public class NetworkTrainer {
   }
 
   private static String scanNetworkLayout(final Scanner scanner) {
-    // TODO: Ask the user for this
-    return "46x92x147x46x23x11x2";
+    String ret = "46x92x147x46x23x11x2";
+    System.out.println("Enter the network structure (for example, 46x92x147x46x23x11x2):");
+    if (scanner.hasNext()) {
+      ret = scanner.next();
+      Networks.parseNetworkStructure(ret);
+    } else {
+      String message = String.format("Something went wrong, returning the default: %s", ret);
+      log.error(message);
+    }
+    return ret;
   }
 
   private static IUpdater scanUpdaterFunction(final Scanner scanner) {
@@ -341,19 +353,15 @@ public class NetworkTrainer {
     return ret;
   }
 
-  private static SeasonData pullSeasonData(final Integer year,
-                                           final String teamName,
-                                           final SeasonDataDao seasonDataDao) {
+  private static SeasonData pullSeasonData(final Integer year, final String teamName, final SeasonDataDao seasonDataDao) {
     return seasonDataDao.fetchByYearAndTeamName(year, teamName);
   }
 
-  private static List<TournamentResult> pullTournamentResults(final Integer year,
-                                                              final TournamentResultDao tournamentResultDao) {
+  private static List<TournamentResult> pullTournamentResults(final Integer year, final TournamentResultDao tournamentResultDao) {
     return tournamentResultDao.fetchAllByYear(year);
   }
 
-  public static List<Double> writeSeasonData(final NetworkParameters networkParameters,
-                                             final SeasonData home,
+  public static List<Double> writeSeasonData(final SeasonData home,
                                              final SeasonData away,
                                              final Double result) {
     List<Double> ret = new ArrayList<>();
