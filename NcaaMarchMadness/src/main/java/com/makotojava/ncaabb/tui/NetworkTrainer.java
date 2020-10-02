@@ -46,10 +46,10 @@ public class NetworkTrainer {
 
   private static final Logger log = Logger.getLogger(NetworkTrainer.class);
 
-  public static Optional<MultiLayerNetwork> trainNetwork(final Scanner scanner,
+  public static Optional<NetworkCandidate> trainNetwork(final Scanner scanner,
                                                          final SeasonDataDao seasonDataDao,
                                                          final TournamentResultDao tournamentResultDao) throws IOException, InterruptedException {
-    Optional<MultiLayerNetwork> ret = Optional.empty();
+    Optional<NetworkCandidate> ret = Optional.empty();
     //
     // Fetch the network configuration parameters
     NetworkParameters networkParameters = fetchNetworkParameters(scanner);
@@ -67,12 +67,12 @@ public class NetworkTrainer {
     //
     // Train the network. If nothing goes wrong, return the trained network.
     MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
-    ret = keepOrDiscardNetwork(scanner, network);
+    ret = keepOrDiscardNetwork(scanner, network, networkParameters);
     return ret;
   }
 
-  private static Optional<MultiLayerNetwork> keepOrDiscardNetwork(final Scanner scanner, final MultiLayerNetwork network) {
-    Optional<MultiLayerNetwork> ret = Optional.empty();
+  private static Optional<NetworkCandidate> keepOrDiscardNetwork(final Scanner scanner, final MultiLayerNetwork network, final NetworkParameters networkParameters) {
+    Optional<NetworkCandidate> ret = Optional.empty();
     Boolean keep = null;
     while (keep == null) {
       System.out.println("Do you want to keep this network (y/n)?");
@@ -86,7 +86,7 @@ public class NetworkTrainer {
       }
     }
     if (keep == Boolean.TRUE) {
-      ret = Optional.of(network);
+      ret = Optional.of(new NetworkCandidate(networkParameters, network));
       log.info(String.format("Network %s retained.", network.toString()));
     } else {
       log.info(String.format("Network %s discarded.", network.toString()));

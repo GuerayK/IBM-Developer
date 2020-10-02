@@ -3,7 +3,6 @@ package com.makotojava.ncaabb.tui;
 import com.makotojava.ncaabb.dao.SeasonDataDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
 import com.makotojava.ncaabb.springconfig.ApplicationConfig;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -18,7 +17,7 @@ import java.util.Scanner;
 public class MainMenu {
   private static final Logger log = LoggerFactory.getLogger(MainMenu.class);
 
-  private final List<MultiLayerNetwork> unsavedNetworks = new ArrayList<>();
+  private final List<NetworkCandidate> unsavedNetworks = new ArrayList<>();
 
   private final SeasonDataDao seasonDataDao;
   private final TournamentResultDao tournamentResultDao;
@@ -87,7 +86,7 @@ public class MainMenu {
       case QUIT:
         break;
       case TRAIN_NETWORK:
-        Optional<MultiLayerNetwork> trainedNetwork = NetworkTrainer.trainNetwork(scanner, seasonDataDao, tournamentResultDao);
+        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, seasonDataDao, tournamentResultDao);
         trainedNetwork.ifPresent(unsavedNetworks::add);
         break;
       case EVALUATE_NETWORK:
