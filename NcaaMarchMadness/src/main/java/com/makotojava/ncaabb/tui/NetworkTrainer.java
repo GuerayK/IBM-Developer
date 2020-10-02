@@ -67,7 +67,30 @@ public class NetworkTrainer {
     //
     // Train the network. If nothing goes wrong, return the trained network.
     MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
-    ret = Optional.of(network);
+    ret = keepOrDiscardNetwork(scanner, network);
+    return ret;
+  }
+
+  private static Optional<MultiLayerNetwork> keepOrDiscardNetwork(final Scanner scanner, final MultiLayerNetwork network) {
+    Optional<MultiLayerNetwork> ret = Optional.empty();
+    Boolean keep = null;
+    while (keep == null) {
+      System.out.println("Do you want to keep this network (y/n)?");
+      if (scanner.hasNext()) {
+        String input = scanner.next();
+        if (input.equalsIgnoreCase("y") || input.equalsIgnoreCase("n")) {
+          keep = (input.equalsIgnoreCase("y")) ? Boolean.TRUE : Boolean.FALSE;
+        } else {
+          System.out.printf("%s is not a valid choice. Please enter y or n.%n", input);
+        }
+      }
+    }
+    if (keep == Boolean.TRUE) {
+      ret = Optional.of(network);
+      log.info(String.format("Network %s retained.", network.toString()));
+    } else {
+      log.info(String.format("Network %s discarded.", network.toString()));
+    }
     return ret;
   }
 
@@ -172,8 +195,8 @@ public class NetworkTrainer {
     Evaluation eval = new Evaluation(2);
     INDArray output = model.output(evaluationData.getFeatures());
     eval.eval(evaluationData.getLabels(), output, evaluationData.getExampleMetaData(RecordMetaData.class)); // Note we are passing in the test set metadata here
-    System.out.println(eval.stats());
-
+    log.info(String.format("Evaluator stats: %s", eval.stats()));
+    log.info(String.format("Network accuracy: %f%%", eval.accuracy()*100.0));
     log.info("Training network...DONE");
     return model;
   }
