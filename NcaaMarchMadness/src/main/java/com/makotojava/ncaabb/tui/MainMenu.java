@@ -110,7 +110,11 @@ public class MainMenu {
         System.out.println("This is where you will run a network someday!");
         break;
       case PERSIST_UNSAVED_NETWORKS:
-        System.out.println("This is where you will persist a network someday!");
+        if (unsavedNetworks.isEmpty()) {
+          System.out.println("No networks to save.");
+        } else {
+          NetworkPersister.persistNetworks(scanner, unsavedNetworks);
+        }
         break;
     }
     return ret;
