@@ -35,6 +35,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,6 +87,7 @@ public class NetworkTrainer {
       }
     }
     if (keep == Boolean.TRUE) {
+      networkParameters.setWhenTrained(LocalDateTime.now());
       ret = Optional.of(new NetworkCandidate(networkParameters, network));
       log.info(String.format("Network %s retained.", network.toString()));
     } else {
