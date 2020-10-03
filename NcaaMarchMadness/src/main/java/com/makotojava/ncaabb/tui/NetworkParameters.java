@@ -5,10 +5,11 @@ import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.weightinit.WeightInit;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class NetworkParameters {
+public class NetworkParameters implements Serializable {
   private Integer numberOfInputs;
   private Integer numberOfOutputs;
   private List<List<Integer>> yearsToTrainAndEvaluateNetwork;
