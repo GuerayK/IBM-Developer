@@ -19,12 +19,14 @@ public class NetworkPersister {
     byte networkNumber = KEEP_LOOPING;
     while (networkNumber == KEEP_LOOPING && !networkCandidateList.isEmpty()) {
       System.out.println("Enter the number of the network you want to persist (enter 0 to quit):");
+      System.out.println("Network#         When Trained          Accuracy                    Layer Structure");
       int index = 0;
       for (NetworkCandidate networkCandidate : networkCandidateList) {
         NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-        System.out.printf("%d - (Trained: %s) %48s%n",
+        System.out.printf ("   %d %24s        %f%%%35s%n",
           index + 1,
           networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
+          networkParameters.getNetworkAccuracy()*100.0,
           networkParameters.getNetworkLayout());
         index++;
       }
