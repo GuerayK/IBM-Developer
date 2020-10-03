@@ -114,6 +114,33 @@ public class NetworkParameters implements Serializable {
     return this;
   }
 
+  public LocalDateTime getWhenTrained() {
+    return whenTrained;
+  }
+
+  public NetworkParameters setWhenTrained(final LocalDateTime whenTrained) {
+    this.whenTrained = whenTrained;
+    return this;
+  }
+
+  public double getNetworkAccuracy() {
+    return networkAccuracy;
+  }
+
+  public NetworkParameters setNetworkAccuracy(final double networkAccuracy) {
+    this.networkAccuracy = networkAccuracy;
+    return this;
+  }
+
+  public boolean isNetworkSaved() {
+    return networkSaved;
+  }
+
+  public NetworkParameters setNetworkSaved(final boolean networkSaved) {
+    this.networkSaved = networkSaved;
+    return this;
+  }
+
   /**
    * Transform the data from Double to Strings.
    * Pull only the data the user has selected, which is contained in the
@@ -143,31 +170,18 @@ public class NetworkParameters implements Serializable {
     return ret;
   }
 
-
-  public LocalDateTime getWhenTrained() {
-    return whenTrained;
-  }
-
-  public NetworkParameters setWhenTrained(final LocalDateTime whenTrained) {
-    this.whenTrained = whenTrained;
-    return this;
-  }
-
-  public double getNetworkAccuracy() {
-    return networkAccuracy;
-  }
-
-  public NetworkParameters setNetworkAccuracy(final double networkAccuracy) {
-    this.networkAccuracy = networkAccuracy;
-    return this;
-  }
-
-  public boolean isNetworkSaved() {
-    return networkSaved;
-  }
-
-  public NetworkParameters setNetworkSaved(final boolean networkSaved) {
-    this.networkSaved = networkSaved;
-    return this;
+  /**
+   * Returns true if the specified year was not used to train or validate
+   * the network (otherwise that just wouldn't be fair), false otherwise.
+   */
+  public boolean isValidYearForTournamentPrediction(final Integer tournamentYear) {
+    boolean ret = true;
+    for (List<Integer> years : getYearsToTrainAndEvaluateNetwork()) {
+      if (years.contains(tournamentYear)) {
+        ret = false;
+        break;
+      }
+    }
+    return ret;
   }
 }
