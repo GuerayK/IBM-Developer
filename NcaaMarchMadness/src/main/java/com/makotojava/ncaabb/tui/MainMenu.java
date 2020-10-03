@@ -43,7 +43,7 @@ public class MainMenu {
         menuChoice = displayMainMenu(scanner);
         //
         // Process the user's choice
-        mainMenu.processMainMenuChoice(scanner, menuChoice);
+        menuChoice = mainMenu.processMainMenuChoice(scanner, menuChoice);
       } catch (Throwable t) {
         //
         // Something bad happened, but we soldier on...
@@ -81,9 +81,23 @@ public class MainMenu {
     return ret;
   }
 
-  private void processMainMenuChoice(final Scanner scanner, final MainMenuChoice menuChoice) throws IOException, InterruptedException {
+  private MainMenuChoice processMainMenuChoice(final Scanner scanner, final MainMenuChoice menuChoice) throws IOException, InterruptedException {
+    MainMenuChoice ret = menuChoice;
     switch (menuChoice) {
       case QUIT:
+        if (unsavedNetworks.size() > 0) {
+          while (true) {
+            System.out.println("You have unsaved networks. Are you sure you want to quit (y/n)?");
+            String input = scanner.next().trim();
+            if (input.equalsIgnoreCase("y")) {
+              break;
+            } else if (input.equalsIgnoreCase("n")) {
+              // Set the return value to UNKNOWN so the main menu displays again
+              ret = MainMenuChoice.UNKNOWN;
+              break;
+            }
+          }
+        }
         break;
       case TRAIN_NETWORK:
         Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, seasonDataDao, tournamentResultDao);
@@ -99,6 +113,7 @@ public class MainMenu {
         System.out.println("This is where you will persist a network someday!");
         break;
     }
+    return ret;
   }
 
 }
