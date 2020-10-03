@@ -197,6 +197,7 @@ public class NetworkTrainer {
     Evaluation eval = new Evaluation(2);
     INDArray output = model.output(evaluationData.getFeatures());
     eval.eval(evaluationData.getLabels(), output, evaluationData.getExampleMetaData(RecordMetaData.class)); // Note we are passing in the test set metadata here
+    networkParameters.setNetworkAccuracy(eval.accuracy());
     log.info(String.format("Evaluator stats: %s", eval.stats()));
     log.info(String.format("Network accuracy: %f%%", eval.accuracy()*100.0));
     log.info("Training network...DONE");

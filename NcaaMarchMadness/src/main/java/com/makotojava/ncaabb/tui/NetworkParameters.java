@@ -20,6 +20,7 @@ public class NetworkParameters {
   private IUpdater updater;
   private List<DataElementMenuChoice> selectedElements;
   private LocalDateTime whenTrained;
+  private double networkAccuracy;
 
   public List<List<Integer>> getYearsToTrainAndEvaluateNetwork() {
     return yearsToTrainAndEvaluateNetwork;
@@ -147,6 +148,15 @@ public class NetworkParameters {
 
   public NetworkParameters setWhenTrained(final LocalDateTime whenTrained) {
     this.whenTrained = whenTrained;
+    return this;
+  }
+
+  public double getNetworkAccuracy() {
+    return networkAccuracy;
+  }
+
+  public NetworkParameters setNetworkAccuracy(final double networkAccuracy) {
+    this.networkAccuracy = networkAccuracy;
     return this;
   }
 }
