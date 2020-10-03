@@ -5,6 +5,7 @@ import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.weightinit.WeightInit;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class NetworkParameters {
@@ -18,6 +19,7 @@ public class NetworkParameters {
   private WeightInit weightInit;
   private IUpdater updater;
   private List<DataElementMenuChoice> selectedElements;
+  private LocalDateTime whenTrained;
 
   public List<List<Integer>> getYearsToTrainAndEvaluateNetwork() {
     return yearsToTrainAndEvaluateNetwork;
@@ -114,7 +116,7 @@ public class NetworkParameters {
    * Pull only the data the user has selected, which is contained in the
    * NetworkParameters.selectedElements property.
    *
-   * @param data              The input data (Double objects)
+   * @param data The input data (Double objects)
    * @return String[] that contains only the data elements the user wants
    * to include to train, evaluate, and run the network.
    */
@@ -139,4 +141,12 @@ public class NetworkParameters {
   }
 
 
+  public LocalDateTime getWhenTrained() {
+    return whenTrained;
+  }
+
+  public NetworkParameters setWhenTrained(final LocalDateTime whenTrained) {
+    this.whenTrained = whenTrained;
+    return this;
+  }
 }
