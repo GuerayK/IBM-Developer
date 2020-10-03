@@ -25,4 +25,12 @@ public class NetworkCandidate {
   public MultiLayerNetwork getMultiLayerNetwork() {
     return multiLayerNetwork;
   }
+
+  @Override
+  public String toString() {
+    return "NetworkCandidate{" +
+      "networkParameters=" + networkParameters.getNetworkLayout() +
+      ", multiLayerNetwork=" + multiLayerNetwork +
+      '}';
+  }
 }

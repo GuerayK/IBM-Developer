@@ -107,7 +107,7 @@ public class MainMenu {
         System.out.println("This is where you will evaluate a network someday!");
         break;
       case RUN_NETWORK:
-        System.out.println("This is where you will run a network someday!");
+        NetworkRunner.go(scanner, unsavedNetworks);
         break;
       case PERSIST_UNSAVED_NETWORKS:
         if (unsavedNetworks.isEmpty()) {

@@ -22,6 +22,7 @@ public class NetworkParameters implements Serializable {
   private List<DataElementMenuChoice> selectedElements;
   private LocalDateTime whenTrained;
   private double networkAccuracy;
+  private boolean networkSaved;
 
   public List<List<Integer>> getYearsToTrainAndEvaluateNetwork() {
     return yearsToTrainAndEvaluateNetwork;
@@ -158,6 +159,15 @@ public class NetworkParameters implements Serializable {
 
   public NetworkParameters setNetworkAccuracy(final double networkAccuracy) {
     this.networkAccuracy = networkAccuracy;
+    return this;
+  }
+
+  public boolean isNetworkSaved() {
+    return networkSaved;
+  }
+
+  public NetworkParameters setNetworkSaved(final boolean networkSaved) {
+    this.networkSaved = networkSaved;
     return this;
   }
 }
