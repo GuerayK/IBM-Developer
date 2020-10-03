@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.tui;
+package com.makotojava.ncaabb.dl4j;
 
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.IUpdater;

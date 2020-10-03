@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.tui;
+package com.makotojava.ncaabb.dl4j;
 
 import com.makotojava.ncaabb.dao.SeasonDataDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;

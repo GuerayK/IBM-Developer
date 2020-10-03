@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.tui;
+package com.makotojava.ncaabb.dl4j;
 
 import com.makotojava.ncaabb.util.NetworkUtils;
 import org.apache.log4j.Logger;

@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.tui;
+package com.makotojava.ncaabb.dl4j;
 
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 
