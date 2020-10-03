@@ -1,8 +1,10 @@
 package com.makotojava.ncaabb.tui;
 
+import com.makotojava.ncaabb.util.NetworkUtils;
 import org.apache.log4j.Logger;
 import org.deeplearning4j.util.ModelSerializer;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -23,10 +25,10 @@ public class NetworkPersister {
       int index = 0;
       for (NetworkCandidate networkCandidate : networkCandidateList) {
         NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-        System.out.printf ("   %d %24s        %f%%%35s%n",
+        System.out.printf("   %d %24s        %f%%%35s%n",
           index + 1,
           networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
-          networkParameters.getNetworkAccuracy()*100.0,
+          networkParameters.getNetworkAccuracy() * 100.0,
           networkParameters.getNetworkLayout());
         index++;
       }
@@ -49,8 +51,8 @@ public class NetworkPersister {
   }
 
   private static byte saveSelectedNetworkOrNot(final Scanner scanner,
-                                          final List<NetworkCandidate> networkCandidateList,
-                                          final byte networkNumber) {
+                                               final List<NetworkCandidate> networkCandidateList,
+                                               final byte networkNumber) {
     byte ret = -1;
     String yesOrNo = null;
     while (yesOrNo == null) {
@@ -75,10 +77,14 @@ public class NetworkPersister {
    */
   private static boolean saveNetwork(final NetworkCandidate networkCandidate) {
     boolean ret = false;
-    System.out.printf("Saving network: %s...%n", networkCandidate.getNetworkParameters().getNetworkLayout());
-    String networkFileName = String.format("NcaaBbNet-%s.zip", networkCandidate.getNetworkParameters().getNetworkLayout());
+    NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
+    String networkFileName = NetworkUtils.fetchNetworkDirectoryAndCreateIfNecessary() + File.separatorChar +
+      String.format("NcaaBbNet-%s-%s.zip", networkParameters.getNetworkLayout(), networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")));
+    System.out.printf("Saving network: %s as %s%n", networkParameters.getNetworkLayout(), networkFileName);
     try {
-      ModelSerializer.writeModel(networkCandidate.getMultiLayerNetwork(), networkFileName, true);
+      File modelFile = new File(networkFileName);
+      ModelSerializer.writeModel(networkCandidate.getMultiLayerNetwork(), modelFile, true);
+      ModelSerializer.addObjectToFile(modelFile, "networkParameters", networkParameters);
       ret = true;
     } catch (IOException e) {
       String message = String.format("Error saving network file '%s': %s", networkFileName, e.getLocalizedMessage());
