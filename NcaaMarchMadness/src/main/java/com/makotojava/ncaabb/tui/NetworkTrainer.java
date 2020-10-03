@@ -155,9 +155,9 @@ public class NetworkTrainer {
         List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, seasonDataWinning, 0.0);
         //
         // Transform the data, then write out the data
-        String[] rowWinString = transformRow(rowWinDouble, networkParameters);
+        String[] rowWinString = networkParameters.transformRow(rowWinDouble);
         csvWriter.writeNext(rowWinString);
-        String[] rowLossString = transformRow(rowLossDouble, networkParameters);
+        String[] rowLossString = networkParameters.transformRow(rowLossDouble);
         csvWriter.writeNext(rowLossString);
       }
     }
@@ -236,37 +236,6 @@ public class NetworkTrainer {
       .nIn(numberOfInputs)
       .nOut(numberOfOutputs)
       .build();
-  }
-
-  /**
-   * Transform the data from Double to Strings.
-   * Pull only the data the user has selected, which is contained in the
-   * NetworkParameters.selectedElements property.
-   *
-   * @param data              The input data (Double objects)
-   * @param networkParameters Metadata to control how the transform is done
-   * @return String[] that contains only the data elements the user wants
-   * to include to train, evaluate, and run the network.
-   */
-  private static String[] transformRow(final List<Double> data,
-                                       final NetworkParameters networkParameters) {
-    // Note: networkParameters is future-proofing, at some point the user can specify the specific fields they want from the data
-    //
-    // Pull the elements from the networkParameters.selectedElements only
-    List<DataElementMenuChoice> selectedElements = networkParameters.getSelectedElements();
-    //
-    // New array contains all of the data, including the label (win/loss)
-    // The selected elements describes the data once, but the List<Double> contains two sets of data: home and away
-    String[] ret = new String[selectedElements.size() * 2 + 1];
-    int index = 0;
-    for (DataElementMenuChoice dataElementMenuChoice : selectedElements) {
-      int elementIndex = dataElementMenuChoice.getElementIndex();
-      ret[index++] = String.valueOf(data.get(elementIndex * 2)); // Home
-      ret[index++] = String.valueOf(data.get(elementIndex * 2 + 1)); // Away
-    }
-    // Set the label (that is, the win/loss value AS AN INTEGER- THIS IS VERY IMPORTANT)
-    ret[index] = String.valueOf(data.get(index).intValue());
-    return ret;
   }
 
   /**
