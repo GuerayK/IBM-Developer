@@ -19,6 +19,10 @@ public class MainMenu {
 
   private final List<NetworkCandidate> unsavedNetworks = new ArrayList<>();
 
+  private static ApplicationContext applicationContext;
+
+  public static ApplicationContext getApplicationContext() { return applicationContext; }
+
   private final SeasonDataDao seasonDataDao;
   private final TournamentResultDao tournamentResultDao;
 
@@ -28,7 +32,8 @@ public class MainMenu {
   }
 
   public static void main(final String[] args) {
-    MainMenu mainMenu = new MainMenu(new AnnotationConfigApplicationContext(ApplicationConfig.class));
+    applicationContext = new AnnotationConfigApplicationContext(ApplicationConfig.class);
+    MainMenu mainMenu = new MainMenu(applicationContext);
     //
     // No arguments - prompt the user for EVERYTHING
     Scanner scanner = new Scanner(System.in);
