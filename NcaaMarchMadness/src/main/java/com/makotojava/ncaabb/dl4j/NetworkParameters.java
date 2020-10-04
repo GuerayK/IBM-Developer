@@ -154,6 +154,21 @@ public class NetworkParameters implements Serializable {
    * to include to train, evaluate, and run the network.
    */
   public String[] transformRow(final List<Double> data) {
+    return transformRow(data, false);
+  }
+
+  /**
+   * Transform the data from Double to Strings.
+   * Pull only the data the user has selected, which is contained in the
+   * NetworkParameters.selectedElements property.
+   *
+   * @param data The input data (Double objects)
+   * @parm training true if the row of data is used for training, false if not.
+   *
+   * @return String[] that contains only the data elements the user wants
+   * to include to train, evaluate, and run the network.
+   */
+  public String[] transformRow(final List<Double> data, final boolean training) {
     // Note: networkParameters is future-proofing, at some point the user can specify the specific fields they want from the data
     //
     // Pull the elements from the networkParameters.selectedElements only
@@ -161,15 +176,22 @@ public class NetworkParameters implements Serializable {
     //
     // New array contains all of the data, including the label (win/loss)
     // The selected elements describes the data once, but the List<Double> contains two sets of data: home and away
-    String[] ret = new String[selectedElements.size() * 2 + 1];
+
+    String[] ret = (training)
+      // Only include a spot for a label if data used for training
+      ? new String[selectedElements.size() * 2 + 1]
+      // No label required
+      : new String[selectedElements.size() * 2];
     int index = 0;
     for (DataElementMenuChoice dataElementMenuChoice : selectedElements) {
       int elementIndex = dataElementMenuChoice.getElementIndex();
       ret[index++] = String.valueOf(data.get(elementIndex * 2)); // Home
       ret[index++] = String.valueOf(data.get(elementIndex * 2 + 1)); // Away
     }
-    // Set the label (that is, the win/loss value AS AN INTEGER- THIS IS VERY IMPORTANT)
-    ret[index] = String.valueOf(data.get(index).intValue());
+    if (training) {
+      // Set the label (that is, the win/loss value AS AN INTEGER- THIS IS VERY IMPORTANT)
+      ret[index] = String.valueOf(data.get(index).intValue());
+    }
     return ret;
   }
 
