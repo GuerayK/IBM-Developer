@@ -1,8 +1,10 @@
 package com.makotojava.ncaabb.dl4j;
 
 import com.makotojava.ncaabb.model.SeasonData;
+import com.makotojava.ncaabb.util.NetworkUtils;
 import org.springframework.context.ApplicationContext;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +18,11 @@ public class TournamentRunnerPlugin2019 extends TournamentRunnerPlugin {
   @Override
   public Integer getTournamentYear() {
     return 2019;
+  }
+
+  @Override
+  public String getTournamentTemplateFileName() {
+    return NetworkUtils.fetchSimulationDirectoryAndCreateIfNecessary() + File.separator + "tournament-template-ncaabb-2019.txt";
   }
 
   /**
