@@ -157,9 +157,9 @@ public class NetworkTrainer {
         List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, seasonDataWinning, 0.0);
         //
         // Transform the data, then write out the data
-        String[] rowWinString = networkParameters.transformRow(rowWinDouble);
+        String[] rowWinString = networkParameters.transformRow(rowWinDouble, true);
         csvWriter.writeNext(rowWinString);
-        String[] rowLossString = networkParameters.transformRow(rowLossDouble);
+        String[] rowLossString = networkParameters.transformRow(rowLossDouble, true);
         csvWriter.writeNext(rowLossString);
       }
     }
