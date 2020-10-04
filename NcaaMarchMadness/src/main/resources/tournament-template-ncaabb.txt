@@ -1,3 +1,7 @@
+# Each line describes a tournament matchup with a home team and an away team
+# NOTE: PUT THIS FILE IN YOUR SIMULATION DIRECTORY!
+# File format:
+# [home_region,home_round,home_index],[away_region,away_round,away_index]
 # East (Region 0)
 # FIRST FOUR (Round 0)
 [0,0,0],[0,0,1]

@@ -235,6 +235,10 @@ public class NetworkProperties {
     return getBooleanPropertyValue("randomize.momentum", Boolean.TRUE);
   }
 
+  public static String getTournamentTemplateFileName() {
+    return getStringPropertyValue("tournament.template.file.name", "tournament-template-ncaabb.txt");
+  }
+
   public static String getTeamMatrixFileName() {
     return getStringPropertyValue("team.matrix.file.name", "all-vs");
   }

@@ -8,28 +8,31 @@ import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class NetworkPersister {
 
-  private static final Logger log = Logger.getLogger(NetworkPersister.class);
-
-  private static final byte KEEP_LOOPING = -1;
-
   public static final String NETWORK_PARAMETERS_KEY = "network.parameters";
+  private static final Logger log = Logger.getLogger(NetworkPersister.class);
+  private static final byte KEEP_LOOPING = -1;
 
   public static void persistNetworks(final Scanner scanner,
                                      final List<NetworkCandidate> networkCandidateList) {
-    Byte selectedNetworkNumber = displayNetworkSelectionMenu(scanner, networkCandidateList);
-    saveSelectedNetworkOrNot(scanner,networkCandidateList, selectedNetworkNumber);
+    Optional<NetworkCandidate> networkCandidate = displayNetworkSelectionMenu(scanner, networkCandidateList);
+    networkCandidate.ifPresent(candidate -> {
+      saveSelectedNetworkOrNot(scanner, candidate);
+      networkCandidateList.remove(candidate);
+    });
   }
 
   /**
    * Displays a menu of networks from the networkCandidates list, asks
    * the user to pick one, and returns their choice.
    */
-  public static Byte displayNetworkSelectionMenu(final Scanner scanner,
-                                            final List<NetworkCandidate> networkCandidates) {
+  public static Optional<NetworkCandidate> displayNetworkSelectionMenu(final Scanner scanner,
+                                                                       final List<NetworkCandidate> networkCandidates) {
+    Optional<NetworkCandidate> ret = Optional.empty();
     byte networkNumber = KEEP_LOOPING;
     while (networkNumber == KEEP_LOOPING && !networkCandidates.isEmpty()) {
       System.out.println("Enter the number of the network you want to persist (enter 0 to quit):");
@@ -45,6 +48,7 @@ public class NetworkPersister {
           networkParameters.isNetworkSaved());
         index++;
       }
+      System.out.println("==> ");
       if (scanner.hasNextByte()) {
         networkNumber = scanner.nextByte();
         if (networkNumber < 0 || networkNumber > networkCandidates.size()) {
@@ -59,20 +63,21 @@ public class NetworkPersister {
         networkNumber = KEEP_LOOPING;
       }
     }
-    return networkNumber;
+    if (networkNumber != 0) {
+      ret = Optional.of(networkCandidates.get(networkNumber - 1));
+    }
+    return ret;
   }
 
   private static void saveSelectedNetworkOrNot(final Scanner scanner,
-                                               final List<NetworkCandidate> networkCandidateList,
-                                               final byte networkNumber) {
+                                               final NetworkCandidate networkCandidate) {
     String yesOrNo = null;
     while (yesOrNo == null) {
-      System.out.printf("Save network %s (y/n)?%n", networkCandidateList.get(networkNumber - 1).getNetworkParameters().getNetworkLayout());
+      System.out.printf("Save network %s (y/n)?%n", networkCandidate.getNetworkParameters().getNetworkLayout());
       yesOrNo = scanner.next().trim();
       if (yesOrNo.equalsIgnoreCase("y")) {
-        NetworkCandidate networkCandidate = networkCandidateList.get(networkNumber - 1);
         if (saveNetwork(networkCandidate)) {
-          networkCandidateList.remove(networkCandidate);
+          log.info("Network saved.");
         }
       } else if (yesOrNo.equalsIgnoreCase("n")) {
         break;

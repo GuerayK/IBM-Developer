@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class NetworkParameters implements Serializable {
+
+  private static final long serialVersionUID = 4L;
+
   private Integer numberOfInputs;
   private Integer numberOfOutputs;
   private List<List<Integer>> yearsToTrainAndEvaluateNetwork;
