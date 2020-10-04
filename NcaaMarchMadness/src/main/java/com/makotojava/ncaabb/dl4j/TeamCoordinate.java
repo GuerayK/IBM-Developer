@@ -1,6 +1,9 @@
 package com.makotojava.ncaabb.dl4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.StringTokenizer;
 
 /**
  * Uniquely identifies a team w/r/t that team's participation
@@ -13,6 +16,20 @@ public class TeamCoordinate {
   private int round;
   private int index;
   private String name; // optional
+
+  public static TeamCoordinate parseCoordinates(final String stringCoordinates) {
+    TeamCoordinate ret = new TeamCoordinate();
+    StringTokenizer strtok = new StringTokenizer(stringCoordinates, ",");
+    List<Integer> coordinateComponents = new ArrayList<>();
+    while (strtok.hasMoreElements()) {
+      coordinateComponents.add(Integer.parseInt(strtok.nextToken()));
+    }
+    ret.setRegion(coordinateComponents.get(0));
+    ret.setRound(coordinateComponents.get(1));
+    ret.setIndex(coordinateComponents.get(2));
+
+    return ret;
+  }
 
   public int getRegion() {
     return region;
