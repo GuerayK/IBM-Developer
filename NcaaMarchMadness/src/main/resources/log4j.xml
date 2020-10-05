@@ -14,7 +14,7 @@
     <level value="INFO" />
   </logger>
 
-  <logger name="com.makotojava.ncaabb.generation.DataCreator">
+  <logger name="com.makotojava.ncaabb">
     <level value="DEBUG" />
   </logger>
 
