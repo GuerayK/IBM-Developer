@@ -257,6 +257,13 @@ public abstract class TournamentRunnerPlugin {
     } else if (away0WinCertainty > home1WinCertainty) {
       // home loss and network more sure of that than away loss
       ret = setWinner(awaySeasonData,homeTeamCoordinate, awayTeamCoordinate);
+    } else {
+      TeamCoordinate winnerByCoinFlip = flipCoin(homeTeamCoordinate,homeSeasonData,awayTeamCoordinate,awaySeasonData);
+      if (winnerByCoinFlip.getName().equalsIgnoreCase(homeTeamName)) {
+        ret = setWinner(homeSeasonData,homeTeamCoordinate,awayTeamCoordinate);
+      } else {
+        ret = setWinner(awaySeasonData,homeTeamCoordinate,awayTeamCoordinate);
+      }
     }
     return ret;
   }
@@ -264,7 +271,7 @@ public abstract class TournamentRunnerPlugin {
   private Optional<TeamCoordinate> setWinner(final SeasonData winnerSeasonData,
                                              final TeamCoordinate homeTeamCoordinate,
                                              final TeamCoordinate awayTeamCoordindate) {
-    Optional<TeamCoordinate> ret = Optional.empty();
+    Optional<TeamCoordinate> ret;
     TeamCoordinate teamCoordinate = computeNextRoundCoordindates(homeTeamCoordinate, awayTeamCoordindate, winnerSeasonData);
     teamCoordinate.setName(winnerSeasonData.getTeamName());
     getTeamCoordinateSeasonDataMap().put(teamCoordinate, winnerSeasonData);
@@ -300,7 +307,10 @@ public abstract class TournamentRunnerPlugin {
   /**
    * Sometimes ya just gotta flip a coin.
    */
-  private TeamCoordinate flipCoin(final TeamCoordinate homeTeamCoordinate, final TeamCoordinate awayTeamCoordindate) {
+  private TeamCoordinate flipCoin(final TeamCoordinate homeTeamCoordinate,
+                                  final SeasonData homeSesonData,
+                                  final TeamCoordinate awayTeamCoordindate,
+                                  final SeasonData awaySeasonData) {
     int numberOfHomeTeamWins = 0;
     int numberOfAwayTeamWins = 0;
     for (int aa = 0; aa < 10000; aa++) {
@@ -313,10 +323,12 @@ public abstract class TournamentRunnerPlugin {
       }
     }
     if (numberOfAwayTeamWins > numberOfHomeTeamWins) {
-      log.warn(String.format("Home team wins coin toss: %s", homeTeamCoordinate));
+      log.warn(String.format("Away team wins coin toss: %s", awayTeamCoordindate));
+      awayTeamCoordindate.setName(awaySeasonData.getTeamName());
       return awayTeamCoordindate;
     } else {
-      log.warn(String.format("Away team wins coin toss: %s", awayTeamCoordindate));
+      log.warn(String.format("Home team wins coin toss: %s", homeTeamCoordinate));
+      homeTeamCoordinate.setName(homeSesonData.getTeamName());
       return homeTeamCoordinate;
     }
   }
