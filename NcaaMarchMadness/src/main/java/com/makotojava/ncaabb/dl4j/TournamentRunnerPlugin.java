@@ -269,8 +269,7 @@ public abstract class TournamentRunnerPlugin {
         INDArray indArrayResults = network.output(recordReaderDataSetIteratorMaybe.get());
         //
         // Figure out who we declare the winner and compute their TeamCoordinates according to the algorithm
-        Optional<TeamCoordinate> winnerTeamCoordinateMaybe = computeWinner(indArrayResults.toDoubleMatrix(), homeTeamCoordinate, awayTeamCoordinate);
-        winnerTeamCoordinateMaybe.ifPresent(teamCoordinate -> log.info(String.format("Winner: %s", teamCoordinate)));
+        computeWinner(indArrayResults.toDoubleMatrix(), homeTeamCoordinate, awayTeamCoordinate);
       });
     });
     //
@@ -353,6 +352,10 @@ public abstract class TournamentRunnerPlugin {
         ret = setWinner(awaySeasonData, homeTeamCoordinate, awayTeamCoordinate);
       }
     }
+    ret.ifPresent(teamCoordinate ->
+      log.debug(String.format("Home: %s, Away: %s, Winner: %s, Stats: h0WP: %10.8f, a0WP: %10.8f, a1WP: %10.8f, h1WP: %10.8f",
+        homeTeamName, awayTeamName, teamCoordinate.getName(), home0WinProbability, away0WinProbability, away1WinProbability, home1WinProbability)
+      ));
     return ret;
   }
 
