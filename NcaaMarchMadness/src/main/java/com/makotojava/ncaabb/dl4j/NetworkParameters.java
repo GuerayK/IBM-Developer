@@ -1,5 +1,6 @@
 package com.makotojava.ncaabb.dl4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
@@ -209,4 +210,25 @@ public class NetworkParameters implements Serializable {
     }
     return ret;
   }
+
+  public String getTrainingYearsString() {
+    return listToCsvString(getYearsToTrainAndEvaluateNetwork().get(0));
+  }
+
+  public String getEvaluationYearsString() {
+    return listToCsvString(getYearsToTrainAndEvaluateNetwork().get(1));
+  }
+
+  private static String listToCsvString(final List<Integer> integerList) {
+    String ret = StringUtils.EMPTY;
+    if (integerList.size() > 0) {
+      String[] years = new String[integerList.size()];
+      for (int index = 0; index < years.length; index++) {
+        years[index] = integerList.get(index).toString();
+      }
+      ret = String.join(",", years);
+    }
+    return ret;
+  }
+
 }

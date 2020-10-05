@@ -17,9 +17,12 @@ public class NetworkPersister {
   private static final Logger log = Logger.getLogger(NetworkPersister.class);
   private static final byte KEEP_LOOPING = -1;
 
+  public static final String ACTION_PERSIST = "persist";
+  public static final String ACTION_WORK_WITH = "work with";
+
   public static void persistNetworks(final Scanner scanner,
                                      final List<NetworkCandidate> networkCandidateList) {
-    Optional<NetworkCandidate> networkCandidate = displayNetworkSelectionMenu(scanner, networkCandidateList);
+    Optional<NetworkCandidate> networkCandidate = displayNetworkSelectionMenu(scanner, networkCandidateList, ACTION_PERSIST);
     networkCandidate.ifPresent(candidate -> {
       saveSelectedNetworkOrNot(scanner, candidate);
       networkCandidateList.remove(candidate);
@@ -31,21 +34,24 @@ public class NetworkPersister {
    * the user to pick one, and returns their choice.
    */
   public static Optional<NetworkCandidate> displayNetworkSelectionMenu(final Scanner scanner,
-                                                                       final List<NetworkCandidate> networkCandidates) {
+                                                                       final List<NetworkCandidate> networkCandidates,
+                                                                       final String action) {
     Optional<NetworkCandidate> ret = Optional.empty();
     byte networkNumber = KEEP_LOOPING;
     while (networkNumber == KEEP_LOOPING && !networkCandidates.isEmpty()) {
-      System.out.println("Enter the number of the network you want to persist (enter 0 to quit):");
-      System.out.println("Network#         When Trained          Accuracy                    Layer Structure  Saved?");
+      System.out.printf("Enter the number of the network you want to %s (enter 0 to quit):%n", action);
+      System.out.println("Network#         When Trained  Accuracy                    Layer Structure  Saved?                Years (Training)                       Years (Eval)");
       int index = 0;
       for (NetworkCandidate networkCandidate : networkCandidates) {
         NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-        System.out.printf("   %d %24s        %f%%%35s  %b %n",
+        System.out.printf("%8d%21s%9.2f%%%35s%5s%35s%35s%n",
           index + 1,
           networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
           networkParameters.getNetworkAccuracy() * 100.0,
           networkParameters.getNetworkLayout(),
-          networkParameters.isNetworkSaved());
+          networkParameters.isNetworkSaved() ? "Y": "N",
+          networkParameters.getTrainingYearsString(),
+          networkParameters.getEvaluationYearsString());
         index++;
       }
       System.out.println("==> ");

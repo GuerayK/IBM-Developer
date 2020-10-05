@@ -77,7 +77,7 @@ public class NetworkRunner {
                                  final List<TournamentRunnerPlugin> tournamentRunnerPlugins) {
     //
     // Get the network the user wants to run
-    Optional<NetworkCandidate> selectedNetwork = NetworkPersister.displayNetworkSelectionMenu(scanner, allNetworks);
+    Optional<NetworkCandidate> selectedNetwork = NetworkPersister.displayNetworkSelectionMenu(scanner, allNetworks, NetworkPersister.ACTION_WORK_WITH);
     if (selectedNetwork.isPresent()) {
       NetworkCandidate networkCandidate = selectedNetwork.get();
       NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
