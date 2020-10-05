@@ -3,6 +3,9 @@ package com.makotojava.ncaabb.dl4j;
 import com.makotojava.ncaabb.dao.SeasonDataDao;
 import com.makotojava.ncaabb.model.SeasonData;
 import com.makotojava.ncaabb.util.NetworkUtils;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
@@ -14,9 +17,11 @@ import org.nd4j.shade.guava.io.CharStreams;
 import org.springframework.context.ApplicationContext;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -105,6 +110,86 @@ public abstract class TournamentRunnerPlugin {
   }
 
   /**
+   * Generate the document showing the tournament results
+   *
+   * @param teamCoordinateSeasonDataMap The map with every game played in the tournament and the TeamCoordindates
+   *                                    of the games. This can be used to visualize the tournament.
+   */
+  private static void visualizeTournamentResults(final NetworkCandidate networkCandidate,
+                                                 final Map<TeamCoordinate, SeasonData> teamCoordinateSeasonDataMap) {
+    //
+    // Read the tournament results template, which contains team coordinates in specific spots in the
+    // template that can be replaced with the actual team names that held those coordinates during any
+    // specific instance of the tournament so the results can be visualized in "bracket" style.
+    List<String[]> templateRecords = readTournamentTemplateFile();
+    //
+    // Replace the TeamCoordinates in the template with the actual team names for the specific tournament
+    // that was simulated and write out the file so the user can open it up and visualize the results.
+    writeTournamentResultsFile(networkCandidate, templateRecords, teamCoordinateSeasonDataMap);
+  }
+
+  private static List<String[]> readTournamentTemplateFile() {
+    //
+    // Open and read the tournament results template CSV, which contains the template for visualizing the tournament results
+    String tournamentResultsTemplateFileName = NetworkUtils.fetchSimulationDirectoryAndCreateIfNecessary() +
+      File.separator + "tournament-results.csv";
+    //
+    // List<String[]> contains the template file, which will be filled in by using the teamCoordinateSeasonDataMap
+    // to map from team coordinates in the template to team names
+    List<String[]> templateRecords = new ArrayList<>();
+    try (BufferedReader tournamentResultsTemplateReader = new BufferedReader(new FileReader(tournamentResultsTemplateFileName))) {
+      CSVReader csvReader = new CSVReader(tournamentResultsTemplateReader, ',', '"');
+      String[] line = csvReader.readNext();
+      while (line != null) {
+        templateRecords.add(line);
+        line = csvReader.readNext();
+      }
+    } catch (IOException e) {
+      String message = String.format("Error reading tournament results template file %s", tournamentResultsTemplateFileName);
+      log.error(message, e);
+      throw new RuntimeException(message, e);
+    }
+    return templateRecords;
+  }
+
+  private static void writeTournamentResultsFile(final NetworkCandidate networkCandidate,
+                                                 final List<String[]> templateRecords,
+                                                 final Map<TeamCoordinate, SeasonData> teamCoordinateSeasonDataMap) {
+    //
+    // Open and write out the tournament results template for this specific tournament result
+    String tournamentResultsFileName = NetworkUtils.fetchSimulationDirectoryAndCreateIfNecessary() + File.separatorChar +
+      NetworkPersister.generateNetworkFileNameBase(networkCandidate) + ".csv";
+    try (BufferedWriter tournamentResultsWriter = new BufferedWriter(new FileWriter(tournamentResultsFileName))) {
+      CSVWriter csvWriter = new CSVWriter(tournamentResultsWriter);
+      //
+      // Read each line in the templateRecords list and translate from team coordinates like [0,1,0] to
+      // a team name using the teamCoordinateSeasonDataMap
+      for (String[] templateRecord : templateRecords) {
+        for (int cellIndex = 0; cellIndex < templateRecord.length; cellIndex++) {
+          String cell = templateRecord[cellIndex];
+          if (TeamCoordinate.looksLikeTeamCoordinate(cell)) {
+            //
+            // Looks like a TeamCoordinate cell, map it after removing brackets (ironic, huh?)
+            TeamCoordinate teamCoordinate = TeamCoordinate.parseCoordinates(
+              StringUtils.remove(StringUtils.remove(cell, '['), ']')
+            );
+            //
+            // Replace the coordinates with the name of the team that had those coordinates in this incarnation of the tournament
+            templateRecord[cellIndex] = teamCoordinateSeasonDataMap.get(teamCoordinate).getTeamName();
+          }
+        }
+        //
+        // Done with that record, write it out
+        csvWriter.writeNext(templateRecord);
+      }
+    } catch (IOException e) {
+      String message = String.format("Error writing tournament results output file %s", tournamentResultsFileName);
+      log.error(message, e);
+      throw new RuntimeException(message, e);
+    }
+  }
+
+  /**
    * Return the tournament year handled by the plugin subclass
    */
   protected abstract Integer getTournamentYear();
@@ -188,6 +273,9 @@ public abstract class TournamentRunnerPlugin {
         winnerTeamCoordinateMaybe.ifPresent(teamCoordinate -> log.info(String.format("Winner: %s", teamCoordinate)));
       });
     });
+    //
+    // Generate tournament results document
+    visualizeTournamentResults(networkCandidate, getTeamCoordinateSeasonDataMap());
   }
 
   /**
@@ -256,13 +344,13 @@ public abstract class TournamentRunnerPlugin {
       ret = setWinner(homeSeasonData, homeTeamCoordinate, awayTeamCoordinate);
     } else if (away0WinCertainty > home1WinCertainty) {
       // home loss and network more sure of that than away loss
-      ret = setWinner(awaySeasonData,homeTeamCoordinate, awayTeamCoordinate);
+      ret = setWinner(awaySeasonData, homeTeamCoordinate, awayTeamCoordinate);
     } else {
-      TeamCoordinate winnerByCoinFlip = flipCoin(homeTeamCoordinate,homeSeasonData,awayTeamCoordinate,awaySeasonData);
+      TeamCoordinate winnerByCoinFlip = flipCoin(homeTeamCoordinate, homeSeasonData, awayTeamCoordinate, awaySeasonData);
       if (winnerByCoinFlip.getName().equalsIgnoreCase(homeTeamName)) {
-        ret = setWinner(homeSeasonData,homeTeamCoordinate,awayTeamCoordinate);
+        ret = setWinner(homeSeasonData, homeTeamCoordinate, awayTeamCoordinate);
       } else {
-        ret = setWinner(awaySeasonData,homeTeamCoordinate,awayTeamCoordinate);
+        ret = setWinner(awaySeasonData, homeTeamCoordinate, awayTeamCoordinate);
       }
     }
     return ret;
@@ -390,4 +478,5 @@ public abstract class TournamentRunnerPlugin {
     this.teamCoordinateSeasonDataMap = teamCoordinateSeasonDataMap;
     return this;
   }
+
 }
