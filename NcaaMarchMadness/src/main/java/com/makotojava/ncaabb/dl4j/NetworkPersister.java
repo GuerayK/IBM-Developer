@@ -94,7 +94,7 @@ public class NetworkPersister {
     boolean ret = false;
     NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
     String networkFileName = NetworkUtils.fetchNetworkDirectoryAndCreateIfNecessary() + File.separatorChar +
-      String.format("NcaaBbNet-%s-%s.dl4j.zip", networkParameters.getNetworkLayout(), networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")));
+      generateNetworkFileNameBase(networkCandidate) + ".zip";
     System.out.printf("Saving network: %s as %s%n", networkParameters.getNetworkLayout(), networkFileName);
     try {
       File modelFile = new File(networkFileName);
@@ -107,5 +107,13 @@ public class NetworkPersister {
       log.error(message, e);
     }
     return ret;
+  }
+
+  public static String generateNetworkFileNameBase(final NetworkCandidate networkCandidate) {
+    NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
+    return String.format("NcaaBbNet-%s-%s.dl4j",
+      networkParameters.getNetworkLayout(),
+      networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")
+      ));
   }
 }
