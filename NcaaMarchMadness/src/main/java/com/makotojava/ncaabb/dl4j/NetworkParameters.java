@@ -1,10 +1,10 @@
 package com.makotojava.ncaabb.dl4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import org.nd4j.weightinit.WeightInit;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -27,6 +27,18 @@ public class NetworkParameters implements Serializable {
   private LocalDateTime whenTrained;
   private double networkAccuracy;
   private boolean networkSaved;
+
+  private static String listToCsvString(final List<Integer> integerList) {
+    String ret = StringUtils.EMPTY;
+    if (integerList.size() > 0) {
+      String[] years = new String[integerList.size()];
+      for (int index = 0; index < years.length; index++) {
+        years[index] = integerList.get(index).toString();
+      }
+      ret = String.join(",", years);
+    }
+    return ret;
+  }
 
   public List<List<Integer>> getYearsToTrainAndEvaluateNetwork() {
     return yearsToTrainAndEvaluateNetwork;
@@ -164,10 +176,9 @@ public class NetworkParameters implements Serializable {
    * NetworkParameters.selectedElements property.
    *
    * @param data The input data (Double objects)
-   * @parm training true if the row of data is used for training, false if not.
-   *
    * @return String[] that contains only the data elements the user wants
    * to include to train, evaluate, and run the network.
+   * @parm training true if the row of data is used for training, false if not.
    */
   public String[] transformRow(final List<Double> data, final boolean training) {
     // Note: networkParameters is future-proofing, at some point the user can specify the specific fields they want from the data
@@ -217,18 +228,6 @@ public class NetworkParameters implements Serializable {
 
   public String getEvaluationYearsString() {
     return listToCsvString(getYearsToTrainAndEvaluateNetwork().get(1));
-  }
-
-  private static String listToCsvString(final List<Integer> integerList) {
-    String ret = StringUtils.EMPTY;
-    if (integerList.size() > 0) {
-      String[] years = new String[integerList.size()];
-      for (int index = 0; index < years.length; index++) {
-        years[index] = integerList.get(index).toString();
-      }
-      ret = String.join(",", years);
-    }
-    return ret;
   }
 
 }

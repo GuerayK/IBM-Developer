@@ -18,18 +18,18 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.shade.guava.io.CharStreams;
-import org.nd4j.weightinit.WeightInit;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -48,8 +48,8 @@ public class NetworkTrainer {
   private static final Logger log = Logger.getLogger(NetworkTrainer.class);
 
   public static Optional<NetworkCandidate> trainNetwork(final Scanner scanner,
-                                                         final SeasonDataDao seasonDataDao,
-                                                         final TournamentResultDao tournamentResultDao) throws IOException, InterruptedException {
+                                                        final SeasonDataDao seasonDataDao,
+                                                        final TournamentResultDao tournamentResultDao) throws IOException, InterruptedException {
     Optional<NetworkCandidate> ret = Optional.empty();
     //
     // Fetch the network configuration parameters
@@ -199,14 +199,16 @@ public class NetworkTrainer {
     eval.eval(evaluationData.getLabels(), output, evaluationData.getExampleMetaData(RecordMetaData.class)); // Note we are passing in the test set metadata here
     networkParameters.setNetworkAccuracy(eval.accuracy());
     log.info(String.format("Evaluator stats: %s", eval.stats()));
-    log.info(String.format("Network accuracy: %f%%", eval.accuracy()*100.0));
+    log.info(String.format("Network accuracy: %f%%", eval.accuracy() * 100.0));
     log.info("Training network...DONE");
     return model;
   }
 
   private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData) {
     log.info("Normalizing data...");
-    DataNormalization normalizer = new NormalizerStandardize();
+//    DataNormalization normalizer = new NormalizerStandardize();
+//    DataNormalization normalizer = new NormalizerMinMaxScaler();
+    DataNormalization normalizer = new NormalizerMinMaxScaler(0, 1);
     normalizer.fit(trainingData);           // Collect the statistics (mean/stdev) from the training data. This does not modify the input data
     normalizer.transform(trainingData);     // Apply normalization to the training data
     normalizer.transform(testData);         // Apply normalization to the test data. This is using statistics calculated from the *training* set
@@ -216,11 +218,11 @@ public class NetworkTrainer {
   private static MultiLayerConfiguration configureNetwork(final NetworkParameters networkParameters) {
     log.info("Configuring network...");
     NeuralNetConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
-      .seed(3)
+      .seed(31)
       .activation(networkParameters.getActivationFunction())
-      .weightInit(org.deeplearning4j.nn.weights.WeightInit.XAVIER)
+      .weightInit(networkParameters.getWeightInit())
       .updater(networkParameters.getUpdater())
-      .l2(0.0001);
+      .l2(0.00001);
     NeuralNetConfiguration.ListBuilder listBuilder = builder.list();
     int[] networkLayout = Networks.parseNetworkStructure(networkParameters.getNetworkLayout());
     for (int index = 0; index < networkLayout.length - 2; index++) {
@@ -284,7 +286,8 @@ public class NetworkTrainer {
 
   private static WeightInit scanWeightInitFunction(final Scanner scanner) {
     // TODO: Ask the user for this
-    return WeightInit.XAVIER;
+    //return WeightInit.XAVIER;
+    return WeightInit.NORMAL;
   }
 
   private static Integer scanNumberOfEpochs(final Scanner scanner) {
@@ -302,12 +305,14 @@ public class NetworkTrainer {
 
   private static LossFunctions.LossFunction scanLossFunction(final Scanner scanner) {
     // TODO: Ask the user for this
-    return LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD;
+//    return LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD;
+    return LossFunctions.LossFunction.HINGE;
   }
 
   private static Activation scanActivationFunction(final Scanner scanner) {
     // TODO: Ask the user for this
     return Activation.TANH;
+//    return Activation.SIGMOID;
   }
 
   private static List<DataElementMenuChoice> scanDataElementChoice(final Scanner scanner) {
