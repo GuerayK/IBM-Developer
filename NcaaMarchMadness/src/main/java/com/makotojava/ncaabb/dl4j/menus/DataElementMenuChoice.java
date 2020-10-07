@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.dl4j;
+package com.makotojava.ncaabb.dl4j.menus;
 
 public enum DataElementMenuChoice {
   // Offense
