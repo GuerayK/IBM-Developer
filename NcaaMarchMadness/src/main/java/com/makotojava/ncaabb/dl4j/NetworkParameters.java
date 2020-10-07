@@ -1,5 +1,6 @@
 package com.makotojava.ncaabb.dl4j;
 
+import com.makotojava.ncaabb.dl4j.menus.DataElementMenuChoice;
 import org.apache.commons.lang3.StringUtils;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
