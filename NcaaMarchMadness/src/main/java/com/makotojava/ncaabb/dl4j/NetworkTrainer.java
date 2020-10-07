@@ -5,6 +5,8 @@ import com.makotojava.ncaabb.dao.TournamentParticipantDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
 import com.makotojava.ncaabb.dl4j.menus.ActivationFunctionMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.DataElementMenuChoice;
+import com.makotojava.ncaabb.dl4j.menus.UpdaterMenuChoice;
+import com.makotojava.ncaabb.dl4j.menus.WeightInitMenuChoice;
 import com.makotojava.ncaabb.generation.Networks;
 import com.makotojava.ncaabb.model.SeasonData;
 import com.makotojava.ncaabb.model.TournamentParticipant;
@@ -369,26 +371,31 @@ public class NetworkTrainer {
     return ret;
   }
 
-  private static IUpdater scanUpdaterFunction(final BufferedReader scanner, final IUpdater updater) {
-    // TODO: Ask the user for this
-    if (updater == null) {
-      return new Nesterovs(0.05);
-//    return new Adam(0.1);
-//    return new AdaDelta();
-//    return new AdaGrad(0.1);
-    } else {
-      return updater;
+  private static Activation scanActivationFunction(final BufferedReader scanner, final Activation activation) throws IOException {
+    Activation ret = (activation == null) ? Activation.TANH : activation;
+    Optional<ActivationFunctionMenuChoice> menuChoice = ActivationFunctionMenuChoice.menu(scanner, activation);
+    if (menuChoice.isPresent()) {
+      ret = menuChoice.get().getActivation();
     }
+    return ret;
   }
 
-  private static WeightInit scanWeightInitFunction(final BufferedReader scanner, final WeightInit weightInit) {
-    // TODO: Ask the user for this
-    if (weightInit == null) {
-      return WeightInit.XAVIER;
-      //return WeightInit.NORMAL;
-    } else {
-      return weightInit;
+  private static IUpdater scanUpdaterFunction(final BufferedReader scanner, final IUpdater updater) throws IOException {
+    IUpdater ret = (updater == null) ? new Nesterovs() : updater;
+    Optional<UpdaterMenuChoice> menuChoice = UpdaterMenuChoice.menu(scanner,updater);
+    if (menuChoice.isPresent()) {
+      ret = menuChoice.get().getUpdater();
     }
+    return ret;
+  }
+
+  private static WeightInit scanWeightInitFunction(final BufferedReader scanner, final WeightInit weightInit) throws IOException {
+    WeightInit ret = (weightInit == null) ? WeightInit.XAVIER : weightInit;
+    Optional<WeightInitMenuChoice> menuChoice = WeightInitMenuChoice.menu(scanner, weightInit);
+    if (menuChoice.isPresent()) {
+      ret = menuChoice.get().getWeightInit();
+    }
+    return ret;
   }
 
   private static Integer scanNumberOfEpochs(final BufferedReader scanner, final Integer numberOfEpochs) throws IOException {
@@ -421,15 +428,6 @@ public class NetworkTrainer {
       return lossFunction;
     }
 //    return LossFunctions.LossFunction.HINGE;
-  }
-
-  private static Activation scanActivationFunction(final BufferedReader scanner, final Activation activation) throws IOException {
-    Activation ret = (activation == null) ? Activation.TANH : activation;
-    Optional<ActivationFunctionMenuChoice> menuChoice = ActivationFunctionMenuChoice.menu(scanner, activation);
-    if (menuChoice.isPresent()) {
-      ret = menuChoice.get().getActivation();
-    }
-    return ret;
   }
 
   private static List<DataElementMenuChoice> scanDataElementChoice(final BufferedReader scanner, final List<DataElementMenuChoice> choices) {
