@@ -3,6 +3,8 @@ package com.makotojava.ncaabb.dl4j;
 import com.makotojava.ncaabb.dao.SeasonDataDao;
 import com.makotojava.ncaabb.dao.TournamentParticipantDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
+import com.makotojava.ncaabb.dl4j.menus.ActivationFunctionMenuChoice;
+import com.makotojava.ncaabb.dl4j.menus.DataElementMenuChoice;
 import com.makotojava.ncaabb.generation.Networks;
 import com.makotojava.ncaabb.model.SeasonData;
 import com.makotojava.ncaabb.model.TournamentParticipant;
@@ -92,7 +94,7 @@ public class NetworkTrainer {
       if (scanner.hasNext()) {
         String input = scanner.next();
         if (!input.equalsIgnoreCase("y")) {
-          System.out.printf("Don't really understand '%s', quitting....", input);
+          System.out.printf("Don't really understand '%s', quitting....%n", input);
           break;
         }
       }
@@ -301,11 +303,15 @@ public class NetworkTrainer {
   private static void scanYearsToTrainAndEvaluateNetwork(final BufferedReader scanner, final NetworkParameters networkParameters) {
     System.out.println("This is the Train Network Menu.");
     System.out.println("Enter year(s) for training (enter multiple years separated by commas)");
+
     List<Integer> yearsToTrain = networkParameters.getYearsToTrainAndEvaluateNetwork().get(0);
     scanListOfValidYears(scanner, yearsToTrain);
+    log.info("Training data year(s): " + StringUtils.join(yearsToTrain, ','));
+
     System.out.println("Enter year(s) for evaluation/validation (enter multiple years separated by commas)");
     List<Integer> yearsToEvaluate = networkParameters.getYearsToTrainAndEvaluateNetwork().get(1);
     scanListOfValidYears(scanner, yearsToEvaluate);
+    log.info("Evaluation data year(s): " + StringUtils.join(yearsToEvaluate, ','));
   }
 
   private static void scanListOfValidYears(final BufferedReader scanner, final List<Integer> listOfYears) {
@@ -328,7 +334,6 @@ public class NetworkTrainer {
             listOfYears.add(year);
           }
         } else if (!listOfYears.isEmpty()){
-          System.out.println("Keeping your previous selection...");
           break;
         } else {
           System.out.println("==> "); // Prompt
@@ -360,6 +365,7 @@ public class NetworkTrainer {
         System.out.println("==> ");
       }
     }
+    log.info("Network layout: " + ret);
     return ret;
   }
 
@@ -417,15 +423,13 @@ public class NetworkTrainer {
 //    return LossFunctions.LossFunction.HINGE;
   }
 
-  private static Activation scanActivationFunction(final BufferedReader scanner, final Activation activation) {
-    // TODO: Ask the user for this
-    if (activation == null) {
-      return Activation.TANH;
-    } else {
-      return activation;
+  private static Activation scanActivationFunction(final BufferedReader scanner, final Activation activation) throws IOException {
+    Activation ret = (activation == null) ? Activation.TANH : activation;
+    Optional<ActivationFunctionMenuChoice> menuChoice = ActivationFunctionMenuChoice.menu(scanner, activation);
+    if (menuChoice.isPresent()) {
+      ret = menuChoice.get().getActivation();
     }
-//    return Activation.HARDTANH;
-//    return Activation.SIGMOID;
+    return ret;
   }
 
   private static List<DataElementMenuChoice> scanDataElementChoice(final BufferedReader scanner, final List<DataElementMenuChoice> choices) {
