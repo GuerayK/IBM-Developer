@@ -1,6 +1,7 @@
 package com.makotojava.ncaabb.dl4j;
 
 import com.makotojava.ncaabb.dao.SeasonDataDao;
+import com.makotojava.ncaabb.dao.TournamentParticipantDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
 import com.makotojava.ncaabb.springconfig.ApplicationConfig;
 import org.slf4j.Logger;
@@ -25,10 +26,12 @@ public class MainMenu {
 
   private final SeasonDataDao seasonDataDao;
   private final TournamentResultDao tournamentResultDao;
+  private final TournamentParticipantDao tournamentParticipantDao;
 
   public MainMenu(final ApplicationContext applicationContext) {
     this.seasonDataDao = applicationContext.getBean(SeasonDataDao.class);
     this.tournamentResultDao = applicationContext.getBean(TournamentResultDao.class);
+    this.tournamentParticipantDao = applicationContext.getBean(TournamentParticipantDao.class);
   }
 
   public static void main(final String[] args) {
@@ -105,7 +108,7 @@ public class MainMenu {
         }
         break;
       case TRAIN_NETWORK:
-        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, seasonDataDao, tournamentResultDao);
+        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, seasonDataDao, tournamentResultDao, tournamentParticipantDao);
         trainedNetwork.ifPresent(unsavedNetworks::add);
         break;
       case EVALUATE_NETWORK:

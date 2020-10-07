@@ -8,6 +8,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NetworkParameters implements Serializable {
@@ -16,7 +17,7 @@ public class NetworkParameters implements Serializable {
 
   private Integer numberOfInputs;
   private Integer numberOfOutputs;
-  private List<List<Integer>> yearsToTrainAndEvaluateNetwork;
+  private List<List<Integer>> yearsToTrainAndEvaluateNetwork = new ArrayList<>();
   private String networkLayout;
   private Activation activationFunction;
   private LossFunctions.LossFunction lossFunction;
@@ -41,12 +42,12 @@ public class NetworkParameters implements Serializable {
   }
 
   public List<List<Integer>> getYearsToTrainAndEvaluateNetwork() {
+    if (yearsToTrainAndEvaluateNetwork == null || yearsToTrainAndEvaluateNetwork.isEmpty()) {
+      yearsToTrainAndEvaluateNetwork = new ArrayList<>();
+      yearsToTrainAndEvaluateNetwork.add(new ArrayList<>()); // train
+      yearsToTrainAndEvaluateNetwork.add(new ArrayList<>()); // evaluate
+    }
     return yearsToTrainAndEvaluateNetwork;
-  }
-
-  public NetworkParameters setYearsToTrainAndEvaluateNetwork(final List<List<Integer>> yearsToTrainAndEvaluateNetwork) {
-    this.yearsToTrainAndEvaluateNetwork = yearsToTrainAndEvaluateNetwork;
-    return this;
   }
 
   public String getNetworkLayout() {
@@ -191,14 +192,13 @@ public class NetworkParameters implements Serializable {
 
     String[] ret = (training)
       // Only include a spot for a label if data used for training
-      ? new String[selectedElements.size() * 2 + 1]
+      ? new String[selectedElements.size() + 1]
       // No label required
-      : new String[selectedElements.size() * 2];
+      : new String[selectedElements.size()];
     int index = 0;
     for (DataElementMenuChoice dataElementMenuChoice : selectedElements) {
       int elementIndex = dataElementMenuChoice.getElementIndex();
-      ret[index++] = String.valueOf(data.get(elementIndex * 2)); // Home
-      ret[index++] = String.valueOf(data.get(elementIndex * 2 + 1)); // Away
+      ret[index++] = String.valueOf(data.get(elementIndex)); // Home
     }
     if (training) {
       // Set the label (that is, the win/loss value AS AN INTEGER- THIS IS VERY IMPORTANT)

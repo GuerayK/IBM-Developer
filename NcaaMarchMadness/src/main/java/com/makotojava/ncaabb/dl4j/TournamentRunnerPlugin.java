@@ -269,7 +269,8 @@ public abstract class TournamentRunnerPlugin {
         INDArray indArrayResults = network.output(recordReaderDataSetIteratorMaybe.get());
         //
         // Figure out who we declare the winner and compute their TeamCoordinates according to the algorithm
-        computeWinner(indArrayResults.toDoubleMatrix(), homeTeamCoordinate, awayTeamCoordinate);
+        TeamCoordinate winningTeamCoordinate = computeWinner(indArrayResults.toDoubleMatrix(), homeTeamCoordinate, awayTeamCoordinate);
+        setWinner(getTeamCoordinateSeasonDataMap().get(winningTeamCoordinate),homeTeamCoordinate, awayTeamCoordinate);
       });
     });
     //
@@ -277,96 +278,56 @@ public abstract class TournamentRunnerPlugin {
     visualizeTournamentResults(networkCandidate, getTeamCoordinateSeasonDataMap());
   }
 
-  /**
-   * Compute the winner by reasonable means, and failing that, flip a coin.
-   * <p>
-   * This can get really confusing really fast.
-   * <p>
-   * The data coming in (in the INDArray) is made up of two rows of data
-   * in the internal double[][]:
-   * <p>
-   * Row 0 - the network's pick with the home team on the LHS and the away team on the RHS
-   * Row 1 - the network's pick with the away team on the LHS and the home team on the RHS
-   * <p>
-   * There are two elements in each double[]:
-   * Element 0 - the probability of the LHS being the winner
-   * Element 1 - the probability of the RHS being the winner
-   * <p>
-   * Obviously, Elements 0 and 1 are interpreted differently depending on whether we
-   * are looking at Row 0 (home team as LHS) or Row 1 (away team as LHS).
-   * <p>
-   * The variables in this method are named with the home and away teams
-   * in mind to make the code (hopefully) easier to understand.
-   *
-   * @return TeamCoordinate - the new team coordinates of the winner, chosen as described above.
-   */
-  private Optional<TeamCoordinate> computeWinner(final double[][] results,
-                                                 final TeamCoordinate homeTeamCoordinate,
-                                                 final TeamCoordinate awayTeamCoordinate) {
-    // Set attributes on the new TeamCoordinate object
-    Optional<TeamCoordinate> ret = Optional.empty();
-    SeasonData homeSeasonData = getTeamCoordinateSeasonDataMap().get(homeTeamCoordinate);
-    String homeTeamName = homeSeasonData.getTeamName(); // FOR DEBUGGING
-    SeasonData awaySeasonData = getTeamCoordinateSeasonDataMap().get(awayTeamCoordinate);
-    String awayTeamName = awaySeasonData.getTeamName(); // FOR DEBUGGING
+  private TeamCoordinate computeWinner(final double[][] results,
+                                       final TeamCoordinate homeTeamCoordinate,
+                                       final TeamCoordinate awayTeamCoordinate) {
+    TeamCoordinate winner;
+    double[] homeTeamProbabilities = results[0];
+    double[] awayTeamProbabilities = results[1];
     //
-    // Process network's pick.
-    // The numbers in the variables indicate the Row number they are referencing
-    // For example, homeWinProbability is the probability from Row 0
-    // of a home win (that is, the LHS probability is > than the RHS probability).
-    //
-    // First row is with home team first
-    double home0WinProbability = results[0][0]; // home from row 0
-    double away0WinProbability = results[0][1]; // away from row 0
-    boolean home0Win = home0WinProbability > away0WinProbability;
-    boolean away0Win = !home0Win; // Hopefully makes it easier to follow
-    // Next row is with home team second (switch the order)
-    double away1WinProbability = results[1][0]; // away from row 1
-    double home1WinProbability = results[1][1]; // home from row 1
-    boolean home1Win = home1WinProbability > away1WinProbability;
-    boolean away1Win = !home1Win;
-    double home0WinCertainty = home0WinProbability - away0WinProbability;
-    double away0WinCertainty = away0WinProbability - home0WinProbability;
-    double home1WinCertainty = home1WinProbability - away1WinProbability;
-    double away1WinCertainty = away1WinProbability - home1WinProbability;
-    //
-    // If (home0Win and home1Win) or (!home0Win and !home1Win), then symmetric
-    if (home0Win && home1Win) {
-      // Symmetric home win - winner: home team
-      ret = setWinner(homeSeasonData, homeTeamCoordinate, awayTeamCoordinate);
-    } else if (away0Win && away1Win) {
-      // Symmetric away win - winner: away team
-      ret = setWinner(awaySeasonData, homeTeamCoordinate, awayTeamCoordinate);
-      // Now we deal with asymmetries.
-    } else if (home0WinCertainty > away1WinCertainty) {
-      // home win and network more sure of that than away win
-      ret = setWinner(homeSeasonData, homeTeamCoordinate, awayTeamCoordinate);
-    } else if (away0WinCertainty > home1WinCertainty) {
-      // home loss and network more sure of that than away loss
-      ret = setWinner(awaySeasonData, homeTeamCoordinate, awayTeamCoordinate);
-    } else {
-      TeamCoordinate winnerByCoinFlip = flipCoin(homeTeamCoordinate, homeSeasonData, awayTeamCoordinate, awaySeasonData);
-      if (winnerByCoinFlip.getName().equalsIgnoreCase(homeTeamName)) {
-        ret = setWinner(homeSeasonData, homeTeamCoordinate, awayTeamCoordinate);
-      } else {
-        ret = setWinner(awaySeasonData, homeTeamCoordinate, awayTeamCoordinate);
+    // The winner is the team predicted to win more games
+    int homeTeamVictories = 0;
+    double homeTeamProbability = 0.0;
+    int index = 0;
+    for (double probability : homeTeamProbabilities) {
+      if (probability > homeTeamProbability) {
+        homeTeamProbability = probability; // highest probability so far
+        homeTeamVictories = index; // highest probability occurs at index
       }
+      index++;
     }
-    ret.ifPresent(teamCoordinate ->
-      log.debug(String.format("Home: %s, Away: %s, Winner: %s, Stats: h0WP: %10.8f, a0WP: %10.8f, a1WP: %10.8f, h1WP: %10.8f",
-        homeTeamName, awayTeamName, teamCoordinate.getName(), home0WinProbability, away0WinProbability, away1WinProbability, home1WinProbability)
-      ));
-    return ret;
+    int awayTeamVictories = 0;
+    double awayTeamProbability = 0.0;
+    index = 0;
+    for (double probability: awayTeamProbabilities) {
+      if (probability > awayTeamProbability) {
+        awayTeamProbability = probability;
+        awayTeamVictories = index;
+      }
+      index++;
+    }
+    if (homeTeamVictories > awayTeamVictories) {
+      // Home team is the winner
+      winner = homeTeamCoordinate;
+    } else if (homeTeamVictories == awayTeamVictories) {
+      // Whichever has the highest probabilty for the same number of victories (that is, the network is more sure)
+      winner = (homeTeamProbability > awayTeamProbability) ? homeTeamCoordinate : awayTeamCoordinate;
+    } else {
+      // Away team is winner
+      winner = awayTeamCoordinate;
+    }
+
+    return winner;
   }
 
-  private Optional<TeamCoordinate> setWinner(final SeasonData winnerSeasonData,
-                                             final TeamCoordinate homeTeamCoordinate,
-                                             final TeamCoordinate awayTeamCoordindate) {
-    Optional<TeamCoordinate> ret;
+  private TeamCoordinate setWinner(final SeasonData winnerSeasonData,
+                                   final TeamCoordinate homeTeamCoordinate,
+                                   final TeamCoordinate awayTeamCoordindate) {
+    TeamCoordinate ret;
     TeamCoordinate teamCoordinate = computeNextRoundCoordindates(homeTeamCoordinate, awayTeamCoordindate, winnerSeasonData);
     teamCoordinate.setName(winnerSeasonData.getTeamName());
     getTeamCoordinateSeasonDataMap().put(teamCoordinate, winnerSeasonData);
-    ret = Optional.of(teamCoordinate);
+    ret = teamCoordinate;
     return ret;
   }
 
@@ -430,18 +391,18 @@ public abstract class TournamentRunnerPlugin {
     Optional<RecordReaderDataSetIterator> ret = Optional.empty();
     //
     // Compute one row of data with home team first
-    String[] homeFirst = networkParameters.transformRow(NetworkTrainer.writeSeasonData(homeTeamSeasonData, awayTeamSeasonData, null), false);
+    String[] home = networkParameters.transformRow(NetworkTrainer.writeSeasonData(homeTeamSeasonData), false);
     //
     // Compute another row of data with away team first
-    String[] awayFirst = networkParameters.transformRow(NetworkTrainer.writeSeasonData(awayTeamSeasonData, homeTeamSeasonData, null), false);
+    String[] away = networkParameters.transformRow(NetworkTrainer.writeSeasonData(awayTeamSeasonData), false);
     //
     // Wrap both rows in a CSVRecordReader, with all the bells and whistles and return the appropriate iterator
     StringBuilder stringSource = new StringBuilder();
-    String homeFirstString = String.join(",", homeFirst);
-    stringSource.append(homeFirstString);
+    String homeString = String.join(",", home);
+    stringSource.append(homeString);
     stringSource.append("\n");
-    String awayFirstString = String.join(",", awayFirst);
-    stringSource.append(awayFirstString);
+    String awayString = String.join(",", away);
+    stringSource.append(awayString);
     stringSource.append("\n");
     StringReader stringReader = new StringReader(stringSource.toString());
     try {
