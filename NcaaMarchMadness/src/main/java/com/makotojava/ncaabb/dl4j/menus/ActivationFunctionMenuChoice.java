@@ -34,25 +34,17 @@ public enum ActivationFunctionMenuChoice {
 
   private static final Logger log = Logger.getLogger(ActivationFunctionMenuChoice.class);
 
-  private Activation activation;
-  private int ordinal;
+  private final Activation activation;
+  private final int ordinal;
 
   ActivationFunctionMenuChoice(final Activation activation, final int ordinal) {
     this.activation = activation;
     this.ordinal = ordinal;
   }
 
-  public Activation getActivation() {
-    return activation;
-  }
-
-  public int getOrdinal() {
-    return ordinal;
-  }
-
   private static Optional<ActivationFunctionMenuChoice> fromOrdinal(final int choice) {
     Optional<ActivationFunctionMenuChoice> ret = Optional.empty();
-    for (ActivationFunctionMenuChoice activationFunctionMenuChoice: values()) {
+    for (ActivationFunctionMenuChoice activationFunctionMenuChoice : values()) {
       if (activationFunctionMenuChoice.getOrdinal() == choice) {
         ret = Optional.of(activationFunctionMenuChoice);
         break;
@@ -63,7 +55,7 @@ public enum ActivationFunctionMenuChoice {
 
   private static Optional<ActivationFunctionMenuChoice> fromActivation(final Activation activation) {
     Optional<ActivationFunctionMenuChoice> ret = Optional.empty();
-    for (ActivationFunctionMenuChoice activationFunctionMenuChoice: values()) {
+    for (ActivationFunctionMenuChoice activationFunctionMenuChoice : values()) {
       if (activationFunctionMenuChoice.getActivation().equals(activation)) {
         ret = Optional.of(activationFunctionMenuChoice);
         break;
@@ -81,7 +73,7 @@ public enum ActivationFunctionMenuChoice {
       if (activation != null) {
         System.out.printf("Press enter to use the %s you used last time: %s%n", thing, activation);
       }
-      displayMenu();
+      displayMenuItems(values());
       userInput = scanner.readLine();
       if (StringUtils.isEmpty(userInput)) {
         // User wants their previous choice
@@ -90,35 +82,42 @@ public enum ActivationFunctionMenuChoice {
         int userChoice = Integer.parseInt(userInput);
         Optional<ActivationFunctionMenuChoice> activationFunctionMenuChoice = fromOrdinal(userChoice);
         if (activationFunctionMenuChoice.isPresent()) {
+          log.debug("You chose activation function: " + activationFunctionMenuChoice.get());
           ret = activationFunctionMenuChoice;
         } else {
           System.out.printf("%d is not a valid choice, please choose from the list.%n", userChoice);
           userInput = null;
         }
       } else {
-        String message = String.format("Not a valid value for number of epochs: %s", userInput);
+        String message = String.format("Not a valid value: %s", userInput);
         log.warn(message);
         userInput = null;
       }
     }
-    log.debug("You chose activation function: " + ret);
     return ret;
   }
 
-  private static void displayMenu() {
-    ActivationFunctionMenuChoice[] choices = values();
+  private static void displayMenuItems(ActivationFunctionMenuChoice[] choices) {
     int numberOfColumns = 4;
-    int numberOfRows = choices.length / numberOfColumns;
-    int index = 0;
+    int numberOfRows = choices.length / numberOfColumns + choices.length % numberOfColumns;
     for (int row = 0; row < numberOfRows; row++) {
       for (int column = 0; column < numberOfColumns; column++) {
+        int index = row+(column*numberOfRows);
         if (index < choices.length) {
-          ActivationFunctionMenuChoice choice = choices[index++];
-          System.out.printf("%d - %16s", choice.getOrdinal(), choice.name());
+          ActivationFunctionMenuChoice choice = choices[index];
+          System.out.printf("%2d - %16s", choice.getOrdinal(), choice.name());
         }
         System.out.print("\t\t");
       }
       System.out.print('\n');
     }
+  }
+
+  public Activation getActivation() {
+    return activation;
+  }
+
+  public int getOrdinal() {
+    return ordinal;
   }
 }
