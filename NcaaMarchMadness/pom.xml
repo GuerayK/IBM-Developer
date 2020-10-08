@@ -38,8 +38,9 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
         <configuration>
-           <mainClass>com.makotojava.ncaabb.generation.MlpNetworkTrainer</mainClass>
+<!--           <mainClass>com.makotojava.ncaabb.generation.MlpNetworkTrainer</mainClass>-->
           <!-- <mainClass>com.makotojava.ncaabb.generation.MlpRandomNetworkTrainer</mainClass>-->
+          <mainClass>com.makotojava.ncaabb.dl4j.MainMenu</mainClass>
         </configuration>
         <executions>
           <execution>
