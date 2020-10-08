@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -257,8 +258,10 @@ public abstract class TournamentRunnerPlugin {
       // Get the home team from the GameCoordinate
       TeamCoordinate homeTeamCoordinate = gameCoordinate.getHome();
       SeasonData homeTeamSeasonData = getTeamCoordinateSeasonDataMap().get(homeTeamCoordinate);
+      homeTeamCoordinate.setName(homeTeamSeasonData.getTeamName());
       TeamCoordinate awayTeamCoordinate = gameCoordinate.getAway();
       SeasonData awayTeamSeasonData = getTeamCoordinateSeasonDataMap().get(awayTeamCoordinate);
+      awayTeamCoordinate.setName(awayTeamSeasonData.getTeamName());
       //
       // Now compute two sets of records to eliminate positional bias
       MultiLayerNetwork network = networkCandidate.getMultiLayerNetwork();
@@ -316,6 +319,12 @@ public abstract class TournamentRunnerPlugin {
       // Away team is winner
       winner = awayTeamCoordinate;
     }
+    log.debug(String.format("%s (%s) vs %s (%s): hv/hp %s/%s, av/ap %s/%s",
+      homeTeamCoordinate.getName(), Arrays.toString(homeTeamProbabilities), // vs
+      awayTeamCoordinate.getName(), Arrays.toString(awayTeamProbabilities), //:
+      homeTeamVictories, homeTeamProbability,
+      awayTeamVictories, awayTeamProbability
+    ));
 
     return winner;
   }
@@ -324,16 +333,16 @@ public abstract class TournamentRunnerPlugin {
                                    final TeamCoordinate homeTeamCoordinate,
                                    final TeamCoordinate awayTeamCoordindate) {
     TeamCoordinate ret;
-    TeamCoordinate teamCoordinate = computeNextRoundCoordindates(homeTeamCoordinate, awayTeamCoordindate, winnerSeasonData);
+    TeamCoordinate teamCoordinate = computeNextRoundCoordinates(homeTeamCoordinate, awayTeamCoordindate, winnerSeasonData);
     teamCoordinate.setName(winnerSeasonData.getTeamName());
     getTeamCoordinateSeasonDataMap().put(teamCoordinate, winnerSeasonData);
     ret = teamCoordinate;
     return ret;
   }
 
-  private TeamCoordinate computeNextRoundCoordindates(final TeamCoordinate homeTeamCoordinate,
-                                                      final TeamCoordinate awayTeamCoordindate,
-                                                      final SeasonData winnerSeasonData) {
+  private TeamCoordinate computeNextRoundCoordinates(final TeamCoordinate homeTeamCoordinate,
+                                                     final TeamCoordinate awayTeamCoordindate,
+                                                     final SeasonData winnerSeasonData) {
     TeamCoordinate ret = new TeamCoordinate();
     switch (homeTeamCoordinate.getRound()) {
       case 0:
