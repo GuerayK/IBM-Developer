@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -45,10 +44,8 @@ public abstract class TournamentRunnerPlugin {
 
   private static final Byte KEEP_LOOPING = -1;
   private static final int BATCH_SIZE = 2000;
-
+  private final SeasonDataDao seasonDataDao;
   private Map<TeamCoordinate, SeasonData> teamCoordinateSeasonDataMap;
-
-  private SeasonDataDao seasonDataDao;
 
   public TournamentRunnerPlugin(final ApplicationContext applicationContext) {
     this.seasonDataDao = applicationContext.getBean(SeasonDataDao.class);
@@ -88,7 +85,7 @@ public abstract class TournamentRunnerPlugin {
   }
 
   static Optional<GameCoordinate> parseTournamentTemplateLine(final String line) {
-    Optional<GameCoordinate> ret = Optional.empty();
+    Optional<GameCoordinate> ret;
     // A line looks like this:
     // [0,0,0],[0,0,1]
     StringTokenizer strtok = new StringTokenizer(line.trim(), "[]vs");
@@ -274,7 +271,7 @@ public abstract class TournamentRunnerPlugin {
         //
         // Figure out who we declare the winner and compute their TeamCoordinates according to the algorithm
         TeamCoordinate winningTeamCoordinate = computeWinner(indArrayResults.toDoubleMatrix(), homeTeamCoordinate, awayTeamCoordinate);
-        setWinner(getTeamCoordinateSeasonDataMap().get(winningTeamCoordinate),homeTeamCoordinate, awayTeamCoordinate);
+        setWinner(getTeamCoordinateSeasonDataMap().get(winningTeamCoordinate), homeTeamCoordinate, awayTeamCoordinate);
       });
     });
     //
@@ -303,7 +300,7 @@ public abstract class TournamentRunnerPlugin {
     int awayTeamVictories = 0;
     double awayTeamProbability = 0.0;
     index = 0;
-    for (double probability: awayTeamProbabilities) {
+    for (double probability : awayTeamProbabilities) {
       if (probability > awayTeamProbability) {
         awayTeamProbability = probability;
         awayTeamVictories = index;
@@ -330,20 +327,16 @@ public abstract class TournamentRunnerPlugin {
     return winner;
   }
 
-  private TeamCoordinate setWinner(final SeasonData winnerSeasonData,
-                                   final TeamCoordinate homeTeamCoordinate,
-                                   final TeamCoordinate awayTeamCoordindate) {
-    TeamCoordinate ret;
-    TeamCoordinate teamCoordinate = computeNextRoundCoordinates(homeTeamCoordinate, awayTeamCoordindate, winnerSeasonData);
+  private void setWinner(final SeasonData winnerSeasonData,
+                         final TeamCoordinate homeTeamCoordinate,
+                         final TeamCoordinate awayTeamCoordindate) {
+    TeamCoordinate teamCoordinate = computeNextRoundCoordinates(homeTeamCoordinate, awayTeamCoordindate);
     teamCoordinate.setName(winnerSeasonData.getTeamName());
     getTeamCoordinateSeasonDataMap().put(teamCoordinate, winnerSeasonData);
-    ret = teamCoordinate;
-    return ret;
   }
 
   private TeamCoordinate computeNextRoundCoordinates(final TeamCoordinate homeTeamCoordinate,
-                                                     final TeamCoordinate awayTeamCoordindate,
-                                                     final SeasonData winnerSeasonData) {
+                                                     final TeamCoordinate awayTeamCoordindate) {
     TeamCoordinate ret = new TeamCoordinate();
     switch (homeTeamCoordinate.getRound()) {
       case 0:
@@ -366,39 +359,10 @@ public abstract class TournamentRunnerPlugin {
     return ret;
   }
 
-  /**
-   * Sometimes ya just gotta flip a coin.
-   */
-  private TeamCoordinate flipCoin(final TeamCoordinate homeTeamCoordinate,
-                                  final SeasonData homeSesonData,
-                                  final TeamCoordinate awayTeamCoordindate,
-                                  final SeasonData awaySeasonData) {
-    int numberOfHomeTeamWins = 0;
-    int numberOfAwayTeamWins = 0;
-    for (int aa = 0; aa < 10000; aa++) {
-      Random random = new Random();
-      int randomInt = random.nextInt(10000);
-      if (randomInt > 4999) {
-        numberOfHomeTeamWins++;
-      } else {
-        numberOfAwayTeamWins++;
-      }
-    }
-    if (numberOfAwayTeamWins > numberOfHomeTeamWins) {
-      log.warn(String.format("Away team wins coin toss: %s", awayTeamCoordindate));
-      awayTeamCoordindate.setName(awaySeasonData.getTeamName());
-      return awayTeamCoordindate;
-    } else {
-      log.warn(String.format("Home team wins coin toss: %s", homeTeamCoordinate));
-      homeTeamCoordinate.setName(homeSesonData.getTeamName());
-      return homeTeamCoordinate;
-    }
-  }
-
   protected Optional<RecordReaderDataSetIterator> computeRecordIterator(final SeasonData homeTeamSeasonData,
                                                                         final SeasonData awayTeamSeasonData,
                                                                         final NetworkParameters networkParameters) {
-    Optional<RecordReaderDataSetIterator> ret = Optional.empty();
+    Optional<RecordReaderDataSetIterator> ret;
     //
     // Compute one row of data with home team first
     String[] home = networkParameters.transformRow(NetworkTrainer.writeSeasonData(homeTeamSeasonData), false);
@@ -448,9 +412,8 @@ public abstract class TournamentRunnerPlugin {
     return teamCoordinateSeasonDataMap;
   }
 
-  public TournamentRunnerPlugin setTeamCoordinateSeasonDataMap(final Map<TeamCoordinate, SeasonData> teamCoordinateSeasonDataMap) {
+  public void setTeamCoordinateSeasonDataMap(final Map<TeamCoordinate, SeasonData> teamCoordinateSeasonDataMap) {
     this.teamCoordinateSeasonDataMap = teamCoordinateSeasonDataMap;
-    return this;
   }
 
 }

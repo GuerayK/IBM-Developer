@@ -273,7 +273,7 @@ public class NetworkTrainer {
     }
     normalizer.transform(testData);         // Apply normalization to the test data. This is using statistics calculated from the *training* set
     double[][] testDataFeatures = testData.getFeatures().toDoubleMatrix();
-    for (double[] feature : trainingDataFeatures) {
+    for (double[] feature : testDataFeatures) {
       log.debug(String.format("normalizeTrainingData(): Test Data:\n%s", Arrays.toString(feature)));
     }
     log.info("Normalizing data...DONE");
