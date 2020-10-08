@@ -141,6 +141,7 @@ public class NetworkTrainer {
   }
 
   private static void fetchNetworkParameters(final BufferedReader scanner, final NetworkParameters networkParameters) throws IOException {
+    System.out.println("This is the Train Network Menu.");
     //
     // Get number of inputs
     networkParameters.setNumberOfInputs(23); // TODO: Get this from the user
@@ -148,36 +149,41 @@ public class NetworkTrainer {
     // Get number of outputs
     networkParameters.setNumberOfOutputs(7); // TODO: Get this from the user
     //
-    // Fetch years to train and evaluate the network
-    scanYearsToTrainAndEvaluateNetwork(scanner, networkParameters);
-    //
-    // Get the network layout in HL1xHL2xHL3x...HLn format, where HL1 is the first hidden layer, HLn is the nth.
-    String networkLayout = scanNetworkLayout(scanner, networkParameters.getNetworkLayout());
-    networkParameters.setNetworkLayout(networkLayout);
-    //
-    // Get the activation function
-    Activation activation = scanActivationFunction(scanner, networkParameters.getActivationFunction());
-    networkParameters.setActivationFunction(activation);
-    //
-    // Get the Loss function
-    LossFunctions.LossFunction lossFunction = scanLossFunction(scanner, networkParameters.getLossFunction());
-    networkParameters.setLossFunction(lossFunction);
-    //
-    // Get the number of epochs
-    Integer numberOfEpochs = scanNumberOfEpochs(scanner, networkParameters.getNumberOfEpochs());
-    networkParameters.setNumberOfEpochs(numberOfEpochs);
-    //
-    // Get the WeightInit function
-    WeightInit weightInit = scanWeightInitFunction(scanner, networkParameters.getWeightInit());
-    networkParameters.setWeightInit(weightInit);
-    //
-    // Get the weight updater function
-    IUpdater updater = scanUpdaterFunction(scanner, networkParameters.getUpdater());
-    networkParameters.setUpdater(updater);
-    //
     // Get the selected Elements
     List<DataElementMenuChoice> dataElementMenuChoices = scanDataElementChoice(scanner, networkParameters.getSelectedElements());
-    networkParameters.setSelectedElements(dataElementMenuChoices);
+    if (dataElementMenuChoices.size() != 0) {
+
+      networkParameters.setSelectedElements(dataElementMenuChoices);
+      //
+      // Fetch years to train and evaluate the network
+      scanYearsToTrainAndEvaluateNetwork(scanner, networkParameters);
+      //
+      // Get the network layout in HL1xHL2xHL3x...HLn format, where HL1 is the first hidden layer, HLn is the nth.
+      String networkLayout = scanNetworkLayout(scanner, networkParameters.getNetworkLayout());
+      networkParameters.setNetworkLayout(networkLayout);
+      //
+      // Get the activation function
+      Activation activation = scanActivationFunction(scanner, networkParameters.getActivationFunction());
+      networkParameters.setActivationFunction(activation);
+      //
+      // Get the Loss function
+      LossFunctions.LossFunction lossFunction = scanLossFunction(scanner, networkParameters.getLossFunction());
+      networkParameters.setLossFunction(lossFunction);
+      //
+      // Get the number of epochs
+      Integer numberOfEpochs = scanNumberOfEpochs(scanner, networkParameters.getNumberOfEpochs());
+      networkParameters.setNumberOfEpochs(numberOfEpochs);
+      //
+      // Get the WeightInit function
+      WeightInit weightInit = scanWeightInitFunction(scanner, networkParameters.getWeightInit());
+      networkParameters.setWeightInit(weightInit);
+      //
+      // Get the weight updater function
+      IUpdater updater = scanUpdaterFunction(scanner, networkParameters.getUpdater());
+      networkParameters.setUpdater(updater);
+    } else {
+      log.error("No data elements selected. Cannot train the network.");
+    }
   }
 
   private static RecordReaderDataSetIterator createIterator(final List<Integer> yearsForTraining,
@@ -315,7 +321,6 @@ public class NetworkTrainer {
    * The first element in the wrapper list is a the list of training years.
    */
   private static void scanYearsToTrainAndEvaluateNetwork(final BufferedReader scanner, final NetworkParameters networkParameters) {
-    System.out.println("This is the Train Network Menu.");
     System.out.println("Enter year(s) for training (enter multiple years separated by commas)");
 
     List<Integer> yearsToTrain = networkParameters.getYearsToTrainAndEvaluateNetwork().get(0);
@@ -441,13 +446,10 @@ public class NetworkTrainer {
     return ret;
   }
 
-  private static List<DataElementMenuChoice> scanDataElementChoice(final BufferedReader scanner, final List<DataElementMenuChoice> choices) {
-    // TODO: Ask the user for this
-    if (choices == null) {
-      return Arrays.asList(DataElementMenuChoice.values());
-    } else {
-      return choices;
-    }
+  private static List<DataElementMenuChoice> scanDataElementChoice(final BufferedReader scanner, final List<DataElementMenuChoice> choices) throws IOException {
+    List<DataElementMenuChoice> ret;
+    ret = DataElementMenuChoice.menu(scanner, choices);
+    return ret;
   }
 
   private static SeasonData pullSeasonData(final Integer year, final String teamName, final SeasonDataDao seasonDataDao) {
