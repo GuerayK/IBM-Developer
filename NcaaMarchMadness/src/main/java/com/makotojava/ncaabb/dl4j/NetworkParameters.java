@@ -199,7 +199,7 @@ public class NetworkParameters implements Serializable {
    * @param data The input data (Double objects)
    * @return String[] that contains only the data elements the user wants
    * to include to train, evaluate, and run the network.
-   * @parm training true if the row of data is used for training, false if not.
+   * @param training true if the row of data is used for training, false if not.
    */
   public String[] transformRow(final List<Double> data, final boolean training) {
     // Note: networkParameters is future-proofing, at some point the user can specify the specific fields they want from the data
