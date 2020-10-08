@@ -20,10 +20,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -132,13 +132,13 @@ public abstract class TournamentRunnerPlugin {
   private static List<String[]> readTournamentTemplateFile() {
     //
     // Open and read the tournament results template CSV, which contains the template for visualizing the tournament results
-    String tournamentResultsTemplateFileName = NetworkUtils.fetchSimulationDirectoryAndCreateIfNecessary() +
-      File.separator + "tournament-results.csv";
+    String tournamentResultsTemplateFileName = "/tournament-results.csv";
     //
     // List<String[]> contains the template file, which will be filled in by using the teamCoordinateSeasonDataMap
     // to map from team coordinates in the template to team names
     List<String[]> templateRecords = new ArrayList<>();
-    try (BufferedReader tournamentResultsTemplateReader = new BufferedReader(new FileReader(tournamentResultsTemplateFileName))) {
+    InputStream inputStream = TournamentRunnerPlugin.class.getResourceAsStream(tournamentResultsTemplateFileName);
+    try (BufferedReader tournamentResultsTemplateReader = new BufferedReader(new InputStreamReader(inputStream))) {
       CSVReader csvReader = new CSVReader(tournamentResultsTemplateReader, ',', '"');
       String[] line = csvReader.readNext();
       while (line != null) {
@@ -213,7 +213,7 @@ public abstract class TournamentRunnerPlugin {
    * was written for.
    */
   public String getTournamentTemplateFileName() {
-    return NetworkUtils.fetchSimulationDirectoryAndCreateIfNecessary() + File.separator + "tournament-template-ncaabb.txt";
+    return "/tournament-template-ncaabb.txt";
   }
 
   /**
@@ -233,7 +233,8 @@ public abstract class TournamentRunnerPlugin {
   public List<GameCoordinate> createTournamentGameList() {
     List<GameCoordinate> ret = new ArrayList<>();
     String tournamentFileName = getTournamentTemplateFileName();
-    try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tournamentFileName))) {
+    InputStream inputStream = TournamentRunnerPlugin.class.getResourceAsStream(tournamentFileName);
+    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
       String line = bufferedReader.readLine();
       while (line != null) {
         if (!line.trim().startsWith("#")) {

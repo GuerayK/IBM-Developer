@@ -1,10 +1,8 @@
 package com.makotojava.ncaabb.dl4j;
 
 import com.makotojava.ncaabb.model.SeasonData;
-import com.makotojava.ncaabb.util.NetworkUtils;
 import org.springframework.context.ApplicationContext;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +19,7 @@ public class TournamentRunnerPlugin2018 extends TournamentRunnerPlugin {
 
   @Override
   public String getTournamentTemplateFileName() {
-    return NetworkUtils.fetchSimulationDirectoryAndCreateIfNecessary() + File.separator + "tournament-template-ncaabb-2018.txt";
+    return "/tournament-template-ncaabb-2018.txt";
   }
 
   @Override
