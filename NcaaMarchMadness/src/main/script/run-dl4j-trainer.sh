@@ -29,9 +29,9 @@ function usage {
 
 # Below is an example that works on my Mac.
 # Change this to match your source location (so your .class files can be found).
-ROOT_DIR=/Users/sperry/home/development/projects/IBM-Developer/NcaaMarchMadness
+ROOT_DIR=.
 # Set the location of your network.properties
-NETWORK_PROPERTIES_FILE=/Users/sperry/home/development/projects/ScienceFair-2021/network.properties
+NETWORK_PROPERTIES_FILE=./network.properties
 if [[ "$DEBUG" == "true" ]]; then echo "Network properties file: $NETWORK_PROPERTIES_FILE"; fi
 JAVA_OPTS=-Dnetwork.properties.file=$NETWORK_PROPERTIES_FILE
 #JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home
@@ -47,30 +47,7 @@ fi
 
 if [[ "$DEBUG" == "true" ]]; then echo "ROOT_DIR = ${ROOT_DIR}"; fi
 
-# Set the lib directory as a convenience
-LIB_DIR=$ROOT_DIR/target/lib
-
-SPRING_FRAMEWORK_VERSION=4.3.6.RELEASE
-
-# Set the CLASSPATH to use.
-#CP=\
-#$LIB_DIR/neuroph-2.94.jar:\
-#$LIB_DIR/postgresql-9.1-901-1.jdbc4.jar:\
-#$LIB_DIR/commons-lang3-3.4.jar:\
-#$LIB_DIR/spring-context-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/spring-core-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/spring-beans-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/spring-aop-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/spring-expression-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/spring-jdbc-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/spring-tx-$SPRING_FRAMEWORK_VERSION.jar:\
-#$LIB_DIR/log4j-1.2.17.jar:\
-#$LIB_DIR/jcl-over-slf4j-1.7.22.jar:\
-#$LIB_DIR/slf4j-api-1.7.22.jar
-
-if [ "$DEBUG" == "true" ]; then echo "CLASSPATH = $CP"; fi
-
 echo "JAVA_OPTS=$JAVA_OPTS"
 
 # Fire up the program
-java $JAVA_OPTS -jar $ROOT_DIR/target/MarchMadness-${PROGRAM_VERSION}.jar $@
+java $JAVA_OPTS -jar $ROOT_DIR/MarchMadness-${PROGRAM_VERSION}.jar $@
