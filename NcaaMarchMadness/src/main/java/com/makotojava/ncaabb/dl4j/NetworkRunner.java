@@ -28,15 +28,19 @@ public class NetworkRunner {
     List<NetworkCandidate> allNetworks = new ArrayList<>();
     allNetworks.addAll(savedNetworks);
     allNetworks.addAll(networkCandidateList);
-    //
-    // Load plugins
-    List<TournamentRunnerPlugin> tournamentRunnerPlugins = loadPlugins();
-    if (!tournamentRunnerPlugins.isEmpty()) {
+    if (!allNetworks.isEmpty()) {
       //
-      // Ask the user what they want to do
-      promptUser(scanner, allNetworks, tournamentRunnerPlugins);
+      // Load plugins
+      List<TournamentRunnerPlugin> tournamentRunnerPlugins = loadPlugins();
+      if (!tournamentRunnerPlugins.isEmpty()) {
+        //
+        // Ask the user what they want to do
+        promptUser(scanner, allNetworks, tournamentRunnerPlugins);
+      } else {
+        log.error("No TournamentRunnerPlugins, cannot run a network to simulate a tournament!");
+      }
     } else {
-      log.error("No TournamentRunnerPlugins, cannot run a network to simulate a tournament!");
+      log.info("No networks to run. Train some networks and try again.");
     }
   }
 
