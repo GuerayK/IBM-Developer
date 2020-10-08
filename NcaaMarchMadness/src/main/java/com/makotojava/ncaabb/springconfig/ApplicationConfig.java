@@ -18,7 +18,7 @@ package com.makotojava.ncaabb.springconfig;
 import com.makotojava.ncaabb.dao.SeasonAnalyticsDao;
 import com.makotojava.ncaabb.dao.SeasonAnalyticsJdbcDao;
 import com.makotojava.ncaabb.dao.SeasonDataDao;
-import com.makotojava.ncaabb.dao.SeasonDataJdbcDao;
+import com.makotojava.ncaabb.dao.SeasonDataFlatFileDao;
 import com.makotojava.ncaabb.dao.TournamentAnalyticsDao;
 import com.makotojava.ncaabb.dao.TournamentAnalyticsJdbcDao;
 import com.makotojava.ncaabb.dao.TournamentParticipantDao;
@@ -60,7 +60,8 @@ public class ApplicationConfig {
 
   @Bean(name = "seasonDataDao")
   public SeasonDataDao getSeasonDataDao() {
-    return new SeasonDataJdbcDao(getDataSource());
+//    return new SeasonDataJdbcDao(getDataSource());
+    return new SeasonDataFlatFileDao();
   }
 
   @Bean(name = "tournamentResultDao")
