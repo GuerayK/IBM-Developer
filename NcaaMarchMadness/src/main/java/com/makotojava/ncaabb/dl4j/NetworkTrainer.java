@@ -32,7 +32,7 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
@@ -57,6 +57,16 @@ import java.util.StringTokenizer;
 public class NetworkTrainer {
 
   private static final Logger log = Logger.getLogger(NetworkTrainer.class);
+
+  private final static Map<Integer, List<TournamentResult>> tournamentYearResultsMap = new HashMap<>();
+  private static List<TournamentResult> getTournamentResults(final Integer tournamentYear) {
+    return tournamentYearResultsMap.computeIfAbsent(tournamentYear, k-> new ArrayList<>());
+  }
+
+  private final static Map<Integer, Map<String, SeasonData>> tournamentYearSeasonDataMap = new HashMap<>();
+  private static Map<String, SeasonData> getTeamSeasonData(final Integer tournamentYear) {
+    return tournamentYearSeasonDataMap.computeIfAbsent(tournamentYear, k -> new HashMap<>());
+  }
 
   public static Optional<NetworkCandidate> trainNetwork(final Scanner scanner,
                                                         final SeasonDataDao seasonDataDao,
@@ -250,8 +260,8 @@ public class NetworkTrainer {
 
   private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData) {
     log.info("Normalizing data...");
-//    DataNormalization normalizer = new NormalizerStandardize();
-    DataNormalization normalizer = new NormalizerMinMaxScaler();
+    DataNormalization normalizer = new NormalizerStandardize();
+//    DataNormalization normalizer = new NormalizerMinMaxScaler();
 //    DataNormalization normalizer = new NormalizerMinMaxScaler(-1, 1);
     normalizer.fit(trainingData);           // Collect the statistics (mean/stdev) from the training data. This does not modify the input data
     normalizer.transform(trainingData);     // Apply normalization to the training data
@@ -440,11 +450,19 @@ public class NetworkTrainer {
   }
 
   private static SeasonData pullSeasonData(final Integer year, final String teamName, final SeasonDataDao seasonDataDao) {
-    return seasonDataDao.fetchByYearAndTeamName(year, teamName);
+    return getTeamSeasonData(year).computeIfAbsent(teamName, k-> {
+      log.debug(String.format("Reading %s %d season data from DB...", teamName, year));
+      return seasonDataDao.fetchByYearAndTeamName(year, teamName);
+    });
   }
 
   private static List<TournamentResult> pullTournamentResults(final Integer year, final TournamentResultDao tournamentResultDao) {
-    return tournamentResultDao.fetchAllByYear(year);
+    List<TournamentResult> ret = getTournamentResults(year);
+    if (ret.isEmpty()) {
+      log.debug(String.format("Reading %d tournament results from DB...", year));
+      ret.addAll(tournamentResultDao.fetchAllByYear(year));
+    }
+    return ret;
   }
 
   public static List<Double> writeSeasonData(final SeasonData seasonData) {
