@@ -5,6 +5,7 @@ import com.makotojava.ncaabb.dao.TournamentParticipantDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
 import com.makotojava.ncaabb.dl4j.menus.ActivationFunctionMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.DataElementMenuChoice;
+import com.makotojava.ncaabb.dl4j.menus.LossFunctionMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.UpdaterMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.WeightInitMenuChoice;
 import com.makotojava.ncaabb.generation.Networks;
@@ -69,11 +70,12 @@ public class NetworkTrainer {
   }
 
   public static Optional<NetworkCandidate> trainNetwork(final Scanner scanner,
+                                                        final NetworkParameters networkParametersGlobal,
                                                         final SeasonDataDao seasonDataDao,
                                                         final TournamentResultDao tournamentResultDao,
                                                         final TournamentParticipantDao tournamentParticipantDao) throws IOException, InterruptedException {
-    Optional<NetworkCandidate> ret = Optional.empty();
-    NetworkParameters networkParameters = new NetworkParameters();
+    Optional<NetworkCandidate> ret;
+    NetworkParameters networkParameters = (networkParametersGlobal == null) ? new NetworkParameters() : networkParametersGlobal.copy();
     scanner.reset();
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     while (true) {
@@ -359,7 +361,7 @@ public class NetworkTrainer {
   }
 
   private static String scanNetworkLayout(final BufferedReader scanner, final String networkLayout) throws IOException {
-    String ret = (StringUtils.isNotEmpty(networkLayout)) ? networkLayout : "23x43x87x37x23x7";
+    String ret = (StringUtils.isNotEmpty(networkLayout)) ? networkLayout : "23x43x83x87x73x61x43x37x23x7";
     String userInput = null;
     while (StringUtils.isEmpty(userInput)) {
       System.out.println("Enter the network structure (for example, " + ret + "):");
@@ -430,14 +432,13 @@ public class NetworkTrainer {
     return ret;
   }
 
-  private static LossFunctions.LossFunction scanLossFunction(final BufferedReader scanner, final LossFunctions.LossFunction lossFunction) {
-    // TODO: Ask the user for this
-    if (lossFunction == null) {
-      return LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD;
-    } else {
-      return lossFunction;
+  private static LossFunctions.LossFunction scanLossFunction(final BufferedReader scanner, final LossFunctions.LossFunction lossFunction) throws IOException {
+    LossFunctions.LossFunction ret = (lossFunction == null) ? LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD : lossFunction;
+    Optional<LossFunctionMenuChoice> menuChoice = LossFunctionMenuChoice.menu(scanner, lossFunction);
+    if (menuChoice.isPresent()) {
+      ret = menuChoice.get().getLossFunction();
     }
-//    return LossFunctions.LossFunction.HINGE;
+    return ret;
   }
 
   private static List<DataElementMenuChoice> scanDataElementChoice(final BufferedReader scanner, final List<DataElementMenuChoice> choices) {

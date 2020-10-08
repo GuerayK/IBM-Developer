@@ -29,6 +29,8 @@ public class MainMenu {
   private final TournamentResultDao tournamentResultDao;
   private final TournamentParticipantDao tournamentParticipantDao;
 
+  private NetworkParameters networkParameters;
+
   public MainMenu(final ApplicationContext applicationContext) {
     this.seasonDataDao = applicationContext.getBean(SeasonDataDao.class);
     this.tournamentResultDao = applicationContext.getBean(TournamentResultDao.class);
@@ -109,8 +111,11 @@ public class MainMenu {
         }
         break;
       case TRAIN_NETWORK:
-        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, seasonDataDao, tournamentResultDao, tournamentParticipantDao);
-        trainedNetwork.ifPresent(unsavedNetworks::add);
+        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, networkParameters, seasonDataDao, tournamentResultDao, tournamentParticipantDao);
+        trainedNetwork.ifPresent(networkCandidate -> {
+          unsavedNetworks.add(networkCandidate);
+          networkParameters = networkCandidate.getNetworkParameters();
+        });
         break;
       case EVALUATE_NETWORK:
         System.out.println("This is where you will evaluate a network someday!");

@@ -30,6 +30,25 @@ public class NetworkParameters implements Serializable {
   private double networkAccuracy;
   private boolean networkSaved;
 
+  public NetworkParameters copy() {
+    NetworkParameters ret = new NetworkParameters()
+      .setNetworkSaved(isNetworkSaved())
+      .setActivationFunction(getActivationFunction())
+      .setLossFunction(getLossFunction())
+      .setNetworkAccuracy(getNetworkAccuracy())
+      .setNetworkLayout(getNetworkLayout())
+      .setNumberOfEpochs(getNumberOfEpochs())
+      .setNumberOfInputs(getNumberOfInputs())
+      .setNumberOfOutputs(getNumberOfOutputs())
+      .setSelectedElements(getSelectedElements())
+      .setUpdater(getUpdater())
+      .setWeightInit(getWeightInit())
+      .setWhenTrained(getWhenTrained());
+      ret.getYearsToTrainAndEvaluateNetwork().get(0).addAll(getYearsToTrainAndEvaluateNetwork().get(0));
+      ret.getYearsToTrainAndEvaluateNetwork().get(1).addAll(getYearsToTrainAndEvaluateNetwork().get(1));
+      return ret;
+  }
+
   private static String listToCsvString(final List<Integer> integerList) {
     String ret = StringUtils.EMPTY;
     if (integerList.size() > 0) {
