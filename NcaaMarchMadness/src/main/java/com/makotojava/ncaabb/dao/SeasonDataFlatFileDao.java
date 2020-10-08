@@ -67,11 +67,8 @@ public class SeasonDataFlatFileDao implements SeasonDataDao {
 
   @Override
   public SeasonData fetchByYearAndTeamName(final Integer year, final String teamName) {
-    SeasonData ret = null;
     Map<String, SeasonData> teamSeasonDataMap = database.get(year);
-    ret = teamSeasonDataMap.get(teamName);
-    log.debug(String.format("fetchByYearAndTeamName(%d, %s): Returning record: %s", year, teamName, ret));
-    return ret;
+    return teamSeasonDataMap.get(teamName);
   }
 
   private static SeasonData parseLine(final String[] line) {
