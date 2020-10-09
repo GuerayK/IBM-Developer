@@ -21,7 +21,6 @@ public class SeasonDataFlatFileDao implements SeasonDataDao {
 
   private static final int NUMBER_OF_FIELDS = 25;
   private static final String FILE_NAME = "/season_data.csv";
-  //private static final String DATA_DIRECTORY = NetworkUtils.fetchDataDirectory();
 
   private Map<Integer, Map<String, SeasonData>> database = new HashMap<>();
 
@@ -35,8 +34,8 @@ public class SeasonDataFlatFileDao implements SeasonDataDao {
     InputStream inputStream = SeasonDataFlatFileDao.class.getResourceAsStream(databaseFileName);
     try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
       CSVReader csvReader = new CSVReader(bufferedReader);
-      String[] line = csvReader.readNext(); // Read header
-      line = csvReader.readNext();
+      csvReader.readNext(); // Read header
+      String[] line = csvReader.readNext();
       while (line != null) {
         if (line.length == NUMBER_OF_FIELDS) {
           SeasonData seasonData = parseLine(line);
