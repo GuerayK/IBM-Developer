@@ -222,7 +222,8 @@ public class NetworkParameters implements Serializable {
     }
     if (training) {
       // Set the label (that is, the win/loss value AS AN INTEGER- THIS IS VERY IMPORTANT)
-      ret[index] = String.valueOf(data.get(index).intValue());
+      // It is located in the very last spot in the incoming List<Double>
+      ret[index] = String.valueOf(data.get(data.size()-1).intValue());
     }
     return ret;
   }
