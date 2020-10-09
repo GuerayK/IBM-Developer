@@ -22,9 +22,9 @@ import com.makotojava.ncaabb.dao.SeasonDataFlatFileDao;
 import com.makotojava.ncaabb.dao.TournamentAnalyticsDao;
 import com.makotojava.ncaabb.dao.TournamentAnalyticsJdbcDao;
 import com.makotojava.ncaabb.dao.TournamentParticipantDao;
-import com.makotojava.ncaabb.dao.TournamentParticipantJdbcDao;
+import com.makotojava.ncaabb.dao.TournamentParticipantFlatFileDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
-import com.makotojava.ncaabb.dao.TournamentResultJdbcDao;
+import com.makotojava.ncaabb.dao.TournamentResultFlatFileDao;
 import com.makotojava.ncaabb.util.NetworkProperties;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.context.annotation.Bean;
@@ -66,7 +66,8 @@ public class ApplicationConfig {
 
   @Bean(name = "tournamentResultDao")
   public TournamentResultDao getTournamentResultDao() {
-    return new TournamentResultJdbcDao(getDataSource());
+//    return new TournamentResultJdbcDao(getDataSource());
+    return new TournamentResultFlatFileDao();
   }
 
   @Bean(name = "SeasonAnalyticsDao")
@@ -81,7 +82,8 @@ public class ApplicationConfig {
 
   @Bean(name = "tournamentParticipantDao")
   public TournamentParticipantDao getTournamentParticipantDao() {
-    return new TournamentParticipantJdbcDao(getDataSource());
+//    return new TournamentParticipantJdbcDao(getDataSource());
+    return new TournamentParticipantFlatFileDao();
   }
 
 }
