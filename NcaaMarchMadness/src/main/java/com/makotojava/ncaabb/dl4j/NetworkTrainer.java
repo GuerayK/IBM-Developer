@@ -143,23 +143,22 @@ public class NetworkTrainer {
   private static void fetchNetworkParameters(final BufferedReader scanner, final NetworkParameters networkParameters) throws IOException {
     System.out.println("This is the Train Network Menu.");
     //
-    // Get number of inputs
-    networkParameters.setNumberOfInputs(23); // TODO: Get this from the user
-    //
     // Get number of outputs
     networkParameters.setNumberOfOutputs(7); // TODO: Get this from the user
     //
     // Get the selected Elements
     List<DataElementMenuChoice> dataElementMenuChoices = scanDataElementChoice(scanner, networkParameters.getSelectedElements());
     if (dataElementMenuChoices.size() != 0) {
-
       networkParameters.setSelectedElements(dataElementMenuChoices);
+      //
+      // Get number of inputs
+      networkParameters.setNumberOfInputs(dataElementMenuChoices.size());
       //
       // Fetch years to train and evaluate the network
       scanYearsToTrainAndEvaluateNetwork(scanner, networkParameters);
       //
       // Get the network layout in HL1xHL2xHL3x...HLn format, where HL1 is the first hidden layer, HLn is the nth.
-      String networkLayout = scanNetworkLayout(scanner, networkParameters.getNetworkLayout());
+      String networkLayout = scanNetworkLayout(scanner, networkParameters.getNetworkLayout(), networkParameters.getNumberOfInputs(), networkParameters.getNumberOfOutputs());
       networkParameters.setNetworkLayout(networkLayout);
       //
       // Get the activation function
@@ -208,7 +207,7 @@ public class NetworkTrainer {
           List<Double> rowWinDouble = writeSeasonData(seasonDataWinning, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
           String[] rowWinString = networkParameters.transformRow(rowWinDouble, true);
           csvWriter.writeNext(rowWinString);
-//          log.debug(String.format("Winning Team: %s (%d), data: %s", winningTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowWinString)));
+          log.debug(String.format("Winning Team: %s (%d), data: %s", winningTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowWinString)));
         }
         // Losing team
         String losingTeamName = tournamentResult.getLosingTeamName();
@@ -222,7 +221,7 @@ public class NetworkTrainer {
           List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
           String[] rowLossString = networkParameters.transformRow(rowLossDouble, true);
           csvWriter.writeNext(rowLossString);
-//          log.debug(String.format("Losing Team: %s (%d), data: %s", losingTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowLossString)));
+          log.debug(String.format("Losing Team: %s (%d), data: %s", losingTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowLossString)));
         }
       }
     }
@@ -365,17 +364,23 @@ public class NetworkTrainer {
     }
   }
 
-  private static String scanNetworkLayout(final BufferedReader scanner, final String networkLayout) throws IOException {
+  private static String scanNetworkLayout(final BufferedReader scanner,
+                                          final String networkLayout,
+                                          final Integer numberOfInputs,
+                                          final Integer numberOfOutputs) throws IOException {
     String ret = (StringUtils.isNotEmpty(networkLayout)) ? networkLayout : "23x43x83x87x73x61x43x37x23x7";
     String userInput = null;
     while (StringUtils.isEmpty(userInput)) {
-      System.out.println("Enter the network structure (for example, " + ret + "):");
+      System.out.println("Enter the network structure (for example, " + ret + ")");
+      System.out.printf("Note: only specify the hidden layer structure. Input layer (%d neurons) and output layer (%d neurons) are already specified.%n",
+        numberOfInputs, numberOfOutputs);
+      System.out.println("==> ");
       if (StringUtils.isNotEmpty(networkLayout)) {
         System.out.println("Press enter to keep your previous choice of " + networkLayout + " or enter a new one below:");
       }
       userInput = scanner.readLine();
       if (StringUtils.isNotEmpty(userInput)) {
-        Networks.parseNetworkStructure(userInput);
+        ret = String.format("%dx%sx%d", numberOfInputs, StringUtils.join(Networks.parseNetworkStructure(userInput), 'x'), numberOfOutputs);
       } else if (StringUtils.isNotEmpty(networkLayout)){
         ret = networkLayout;
         System.out.println("Using your previous choice of " + networkLayout + "....");
