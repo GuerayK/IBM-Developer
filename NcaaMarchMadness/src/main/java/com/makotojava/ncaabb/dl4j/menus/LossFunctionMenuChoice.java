@@ -101,7 +101,7 @@ public enum LossFunctionMenuChoice {
         int index = row + (column * numberOfRows);
         if (index < choices.length) {
           LossFunctionMenuChoice choice = choices[index];
-          System.out.printf("%2d - %24s", choice.getOrdinal(), choice.name());
+          System.out.printf("%2d - %30s", choice.getOrdinal(), choice.name());
         }
         System.out.print("\t\t");
       }
