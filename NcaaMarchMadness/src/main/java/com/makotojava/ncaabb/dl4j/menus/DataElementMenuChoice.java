@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,7 +70,8 @@ public enum DataElementMenuChoice {
     while (true) {
       if (!ret.isEmpty()) {
         System.out.println("******* CURRENT CHOICES *******");
-        System.out.printf("%s%n", StringUtils.join(ret, ','));
+        Collections.sort(ret);
+        displayMenuItems(ret.toArray(new DataElementMenuChoice[0]));
         System.out.println("(To use these choices just press enter)");
         System.out.printf("To remove a choice enter -NUMBER (for example, -%d removes %s from your selections)%n", ret.get(0).getOrdinal(), ret.get(0).name());
       }
@@ -79,7 +81,7 @@ public enum DataElementMenuChoice {
       if (StringUtils.isEmpty(userInput)) {
         // User wants their previous choices, we're done here
         break;
-      } else if (StringUtils.isNumeric(userInput)) {
+      } else if (isNumeric(userInput)) {
         int userChoice = Integer.parseInt(userInput);
         if (userChoice == 0) {
           // Zero means quit, this is just for consistency with other menus, hitting enter works too
@@ -92,6 +94,12 @@ public enum DataElementMenuChoice {
       }
     }
     return ret;
+  }
+
+  private static boolean isNumeric(final String userInput) {
+    return StringUtils.isNumeric(userInput) ||
+      userInput.startsWith("-") && StringUtils.isNumeric(StringUtils.substring(userInput, 1))
+      ;
   }
 
   private static DataElementMenuChoice[] filter(final DataElementMenuChoice[] values,
