@@ -47,7 +47,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,11 +60,12 @@ public class NetworkTrainer {
   private static final Logger log = Logger.getLogger(NetworkTrainer.class);
 
   private final static Map<Integer, List<TournamentResult>> tournamentYearResultsMap = new HashMap<>();
+  private final static Map<Integer, Map<String, SeasonData>> tournamentYearSeasonDataMap = new HashMap<>();
+
   private static List<TournamentResult> getTournamentResults(final Integer tournamentYear) {
-    return tournamentYearResultsMap.computeIfAbsent(tournamentYear, k-> new ArrayList<>());
+    return tournamentYearResultsMap.computeIfAbsent(tournamentYear, k -> new ArrayList<>());
   }
 
-  private final static Map<Integer, Map<String, SeasonData>> tournamentYearSeasonDataMap = new HashMap<>();
   private static Map<String, SeasonData> getTeamSeasonData(final Integer tournamentYear) {
     return tournamentYearSeasonDataMap.computeIfAbsent(tournamentYear, k -> new HashMap<>());
   }
@@ -102,15 +103,8 @@ public class NetworkTrainer {
       log.info("Training network...");
       MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
       ret = keepOrDiscardNetwork(scanner, network, networkParameters);
-      //
-      // Ask if they want to train another network or quit
-      System.out.println("Train another network (y/n)?");
-      if (scanner.hasNext()) {
-        String input = scanner.next();
-        if (!input.equalsIgnoreCase("y")) {
-          System.out.printf("Don't really understand '%s', quitting....%n", input);
-          break;
-        }
+      if (ret.isPresent()) {
+        break;
       }
     }
     return ret;
@@ -195,6 +189,7 @@ public class NetworkTrainer {
     Map<String, SeasonData> teamNameSeasonDataMap = new HashMap<>(); // Optimization - do not create data for the same team twice
     for (Integer year : yearsForTraining) {
       List<TournamentResult> tournamentResults = pullTournamentResults(year, tournamentResultDao);
+      Collections.shuffle(tournamentResults); // Shake things up a little
       for (TournamentResult tournamentResult : tournamentResults) {
         String winningTeamName = tournamentResult.getWinningTeamName();
         SeasonData seasonDataWinning = teamNameSeasonDataMap.get(winningTeamName);
@@ -207,7 +202,7 @@ public class NetworkTrainer {
           List<Double> rowWinDouble = writeSeasonData(seasonDataWinning, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
           String[] rowWinString = networkParameters.transformRow(rowWinDouble, true);
           csvWriter.writeNext(rowWinString);
-          log.debug(String.format("Winning Team: %s (%d), data: %s", winningTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowWinString)));
+//          log.debug(String.format("Winning Team: %s (%d), data: %s", winningTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowWinString)));
         }
         // Losing team
         String losingTeamName = tournamentResult.getLosingTeamName();
@@ -221,7 +216,7 @@ public class NetworkTrainer {
           List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
           String[] rowLossString = networkParameters.transformRow(rowLossDouble, true);
           csvWriter.writeNext(rowLossString);
-          log.debug(String.format("Losing Team: %s (%d), data: %s", losingTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowLossString)));
+//          log.debug(String.format("Losing Team: %s (%d), data: %s", losingTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowLossString)));
         }
       }
     }
@@ -240,7 +235,9 @@ public class NetworkTrainer {
     log.info("Training network...");
     trainingDataIterator.setCollectMetaData(true);
     DataSet trainingData = trainingDataIterator.next();
+    trainingData.shuffle(); // Shake things up
     DataSet evaluationData = evaluationDataIterator.next();
+    evaluationData.shuffle(); // Shake things up
     normalizeTrainingData(trainingData, evaluationData);
 
     //
@@ -272,15 +269,15 @@ public class NetworkTrainer {
 //    DataNormalization normalizer = new NormalizerMinMaxScaler(-1, 1);
     normalizer.fit(trainingData);           // Collect the statistics (mean/stdev) from the training data. This does not modify the input data
     normalizer.transform(trainingData);     // Apply normalization to the training data
-    double[][] trainingDataFeatures = trainingData.getFeatures().toDoubleMatrix();
-    for (double[] feature : trainingDataFeatures) {
-      log.debug(String.format("normalizeTrainingData(): Training Data:\n%s", Arrays.toString(feature)));
-    }
+//    double[][] trainingDataFeatures = trainingData.getFeatures().toDoubleMatrix();
+//    for (double[] feature : trainingDataFeatures) {
+//      log.debug(String.format("normalizeTrainingData(): Training Data:\n%s", Arrays.toString(feature)));
+//    }
     normalizer.transform(testData);         // Apply normalization to the test data. This is using statistics calculated from the *training* set
-    double[][] testDataFeatures = testData.getFeatures().toDoubleMatrix();
-    for (double[] feature : testDataFeatures) {
-      log.debug(String.format("normalizeTrainingData(): Test Data:\n%s", Arrays.toString(feature)));
-    }
+//    double[][] testDataFeatures = testData.getFeatures().toDoubleMatrix();
+//    for (double[] feature : testDataFeatures) {
+//      log.debug(String.format("normalizeTrainingData(): Test Data:\n%s", Arrays.toString(feature)));
+//    }
     log.info("Normalizing data...DONE");
   }
 
@@ -351,7 +348,7 @@ public class NetworkTrainer {
             NetworkUtils.validateYear(year);
             listOfYears.add(year);
           }
-        } else if (!listOfYears.isEmpty()){
+        } else if (!listOfYears.isEmpty()) {
           break;
         } else {
           System.out.println("==> "); // Prompt
@@ -368,7 +365,7 @@ public class NetworkTrainer {
                                           final String networkLayout,
                                           final Integer numberOfInputs,
                                           final Integer numberOfOutputs) throws IOException {
-    String ret = (StringUtils.isNotEmpty(networkLayout)) ? networkLayout : "23x43x83x87x73x61x43x37x23x7";
+    String ret = (StringUtils.isNotEmpty(networkLayout)) ? networkLayout : "23x43x83x87x73x61x43x37x23";
     String userInput = null;
     while (StringUtils.isEmpty(userInput)) {
       System.out.println("Enter the network structure (for example, " + ret + ")");
@@ -376,15 +373,18 @@ public class NetworkTrainer {
         numberOfInputs, numberOfOutputs);
       System.out.println("==> ");
       if (StringUtils.isNotEmpty(networkLayout)) {
-        System.out.println("Press enter to keep your previous choice of " + networkLayout + " or enter a new one below:");
+        int[] existingNetworkLayout = Networks.parseNetworkStructure(networkLayout);
+        // Strip off the first layer and set it to the number of inputs (if the user has added or removed data elements the previous number of inputs will be wrong)
+        existingNetworkLayout[0] = numberOfInputs;
+        ret = StringUtils.join(existingNetworkLayout, 'x');
+        System.out.println("Press enter to keep your previous choice of " + ret + " or enter a new one below:");
       }
       userInput = scanner.readLine();
-      if (StringUtils.isNotEmpty(userInput)) {
-        ret = String.format("%dx%sx%d", numberOfInputs, StringUtils.join(Networks.parseNetworkStructure(userInput), 'x'), numberOfOutputs);
-      } else if (StringUtils.isNotEmpty(networkLayout)){
-        ret = networkLayout;
-        System.out.println("Using your previous choice of " + networkLayout + "....");
+      if (StringUtils.isEmpty(userInput)) {
+        System.out.println("Using your previous choice of " + ret + "....");
         break;
+      } else if (StringUtils.isNotEmpty(userInput)) {
+        ret = String.format("%dx%sx%d", numberOfInputs, StringUtils.join(Networks.parseNetworkStructure(userInput), 'x'), numberOfOutputs);
       } else {
         System.out.println("==> ");
       }
@@ -404,7 +404,7 @@ public class NetworkTrainer {
 
   private static IUpdater scanUpdaterFunction(final BufferedReader scanner, final IUpdater updater) throws IOException {
     IUpdater ret = (updater == null) ? new Nesterovs() : updater;
-    Optional<UpdaterMenuChoice> menuChoice = UpdaterMenuChoice.menu(scanner,updater);
+    Optional<UpdaterMenuChoice> menuChoice = UpdaterMenuChoice.menu(scanner, updater);
     if (menuChoice.isPresent()) {
       ret = menuChoice.get().getUpdater();
     }
@@ -458,7 +458,7 @@ public class NetworkTrainer {
   }
 
   private static SeasonData pullSeasonData(final Integer year, final String teamName, final SeasonDataDao seasonDataDao) {
-    return getTeamSeasonData(year).computeIfAbsent(teamName, k-> {
+    return getTeamSeasonData(year).computeIfAbsent(teamName, k -> {
       log.debug(String.format("Reading %s %d season data from DB...", teamName, year));
       return seasonDataDao.fetchByYearAndTeamName(year, teamName);
     });
