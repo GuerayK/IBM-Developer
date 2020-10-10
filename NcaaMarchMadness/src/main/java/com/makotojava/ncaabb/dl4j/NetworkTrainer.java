@@ -79,58 +79,37 @@ public class NetworkTrainer {
     NetworkParameters networkParameters = (networkParametersGlobal == null) ? new NetworkParameters() : networkParametersGlobal.copy();
     scanner.reset();
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-    while (true) {
-      //
-      // Fetch the network configuration parameters (reuse NetworkParameters so user doesn't have to re-enter everything each time)
-      fetchNetworkParameters(bufferedReader, networkParameters);
-      log.info("Network parameters acquired.");
-      //
-      // Get the season data for the teams in the training years
-      List<Integer> yearsToTrain = networkParameters.getYearsToTrainAndEvaluateNetwork().get(0);
-      log.info("Pulling training data...");
-      RecordReaderDataSetIterator trainingDataIterator = createIterator(yearsToTrain, seasonDataDao, tournamentResultDao, tournamentParticipantDao, networkParameters);
-      //
-      // Get the season data for the teams in the evaluation years
-      List<Integer> yearsToEvaluate = networkParameters.getYearsToTrainAndEvaluateNetwork().get(1);
-      log.info("Pulling evaluation data...");
-      RecordReaderDataSetIterator evaluationDataIterator = createIterator(yearsToEvaluate, seasonDataDao, tournamentResultDao, tournamentParticipantDao, networkParameters);
-      //
-      // Create the network definition
-      log.info("Configuring network...");
-      MultiLayerConfiguration configuration = configureNetwork(networkParameters);
-      //
-      // Train the network. If nothing goes wrong, return the trained network.
-      log.info("Training network...");
-      MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
-      ret = keepOrDiscardNetwork(scanner, network, networkParameters);
-      if (ret.isPresent()) {
-        break;
-      }
-    }
+    //
+    // Fetch the network configuration parameters (reuse NetworkParameters so user doesn't have to re-enter everything each time)
+    fetchNetworkParameters(bufferedReader, networkParameters);
+    log.info("Network parameters acquired.");
+    //
+    // Get the season data for the teams in the training years
+    List<Integer> yearsToTrain = networkParameters.getYearsToTrainAndEvaluateNetwork().get(0);
+    log.info("Pulling training data...");
+    RecordReaderDataSetIterator trainingDataIterator = createIterator(yearsToTrain, seasonDataDao, tournamentResultDao, tournamentParticipantDao, networkParameters);
+    //
+    // Get the season data for the teams in the evaluation years
+    List<Integer> yearsToEvaluate = networkParameters.getYearsToTrainAndEvaluateNetwork().get(1);
+    log.info("Pulling evaluation data...");
+    RecordReaderDataSetIterator evaluationDataIterator = createIterator(yearsToEvaluate, seasonDataDao, tournamentResultDao, tournamentParticipantDao, networkParameters);
+    //
+    // Create the network definition
+    log.info("Configuring network...");
+    MultiLayerConfiguration configuration = configureNetwork(networkParameters);
+    //
+    // Train the network. If nothing goes wrong, return the trained network.
+    log.info("Training network...");
+    MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
+    ret = keepNetwork(scanner, network, networkParameters);
     return ret;
   }
 
-  private static Optional<NetworkCandidate> keepOrDiscardNetwork(final Scanner scanner, final MultiLayerNetwork network, final NetworkParameters networkParameters) {
-    Optional<NetworkCandidate> ret = Optional.empty();
-    Boolean keep = null;
-    while (keep == null) {
-      System.out.println("Do you want to keep this network (y/n)?");
-      if (scanner.hasNext()) {
-        String input = scanner.next();
-        if (input.equalsIgnoreCase("y") || input.equalsIgnoreCase("n")) {
-          keep = (input.equalsIgnoreCase("y")) ? Boolean.TRUE : Boolean.FALSE;
-        } else {
-          System.out.printf("%s is not a valid choice. Please enter y or n.%n", input);
-        }
-      }
-    }
-    if (keep == Boolean.TRUE) {
-      networkParameters.setWhenTrained(LocalDateTime.now());
-      ret = Optional.of(new NetworkCandidate(networkParameters, network));
-      log.info(String.format("Network %s retained.", network.toString()));
-    } else {
-      log.info(String.format("Network %s discarded.", network.toString()));
-    }
+  private static Optional<NetworkCandidate> keepNetwork(final Scanner scanner, final MultiLayerNetwork network, final NetworkParameters networkParameters) {
+    Optional<NetworkCandidate> ret;
+    networkParameters.setWhenTrained(LocalDateTime.now());
+    ret = Optional.of(new NetworkCandidate(networkParameters, network));
+    log.info(String.format("Network %s retained.", network.toString()));
     return ret;
   }
 
@@ -138,7 +117,7 @@ public class NetworkTrainer {
     System.out.println("This is the Train Network Menu.");
     //
     // Get number of outputs
-    networkParameters.setNumberOfOutputs(7); // TODO: Get this from the user
+    networkParameters.setNumberOfOutputs(7);
     //
     // Get the selected Elements
     List<DataElementMenuChoice> dataElementMenuChoices = scanDataElementChoice(scanner, networkParameters.getSelectedElements());
