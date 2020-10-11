@@ -25,10 +25,10 @@ public enum UpdaterMenuChoice {
   ADA_MAX(new AdaMax(), 4),
   AMS_GRAD(new AMSGrad(), 5),
   NADAM(new Nadam(), 6),
-  NESTEROVS(new Nesterovs(), 7),
+  NESTEROVS(new Nesterovs(0.01, 0.09), 7),
   NOOP(new NoOp(), 8),
   RMS_PROP(new RmsProp(), 9),
-  SGD(new Sgd(), 10);
+  SGD(new Sgd(0.0005), 10);
 
   private static final Logger log = Logger.getLogger(UpdaterMenuChoice.class);
   private final IUpdater updater;
