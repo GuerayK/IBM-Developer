@@ -93,6 +93,8 @@ public class SeasonData {
   private BigDecimal turnoversPerGame;
   private BigDecimal foulsPerGame;
   private BigDecimal numDq;
+  //
+  private BigDecimal wonLostPercentage;
   
   public SeasonData() {
     // Nothing to do
@@ -300,5 +302,13 @@ public class SeasonData {
   public void setNumDq(BigDecimal numDq) {
     this.numDq = numDq.setScale(StatsUtils.SCALE, RoundingMode.HALF_UP);
   }
-  
+
+  public BigDecimal getWonLostPercentage() {
+    return wonLostPercentage;
+  }
+
+  public SeasonData setWonLostPercentage(final BigDecimal wonLostPercentage) {
+    this.wonLostPercentage = wonLostPercentage;
+    return this;
+  }
 }

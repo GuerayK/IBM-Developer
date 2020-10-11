@@ -40,7 +40,9 @@ public enum DataElementMenuChoice {
   // Errors
   TURNOVERS_PER_GAME(21, 20),
   FOULS_PER_GAME(22, 21),
-  NUMBER_DISQUALIFICATIONS(23, 22);
+  NUMBER_DISQUALIFICATIONS(23, 22),
+  //
+  WON_LOST_PERCENTAGE(24, 23);
 
   private static final Logger log = Logger.getLogger(DataElementMenuChoice.class);
   private final int ordinal;

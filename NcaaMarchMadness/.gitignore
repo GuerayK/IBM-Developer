@@ -35,3 +35,6 @@ target
 .prefs
 .settings
 **/*.class
+
+# DL4J predictions
+*.dl4j.csv

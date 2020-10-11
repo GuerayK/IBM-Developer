@@ -486,6 +486,8 @@ public class NetworkTrainer {
     ret.add(seasonData.getTurnoversPerGame().doubleValue());
     ret.add(seasonData.getFoulsPerGame().doubleValue());
     ret.add(seasonData.getNumDq().doubleValue());
+    //
+    ret.add(seasonData.getWonLostPercentage().doubleValue());
     // Class - the number of tournament victories
     if (isTraining) {
       ret.add(resultClass);

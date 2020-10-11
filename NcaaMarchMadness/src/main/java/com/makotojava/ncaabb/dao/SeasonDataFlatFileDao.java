@@ -19,38 +19,18 @@ public class SeasonDataFlatFileDao implements SeasonDataDao {
 
   private static final Logger log = Logger.getLogger(SeasonDataFlatFileDao.class);
 
-  private static final int NUMBER_OF_FIELDS = 25;
-  private static final String FILE_NAME = "/season_data.csv";
+  private static final int SEASON_DATA_NUMBER_OF_FIELDS = 25;
+  private static final String SEASON_DATA_FILE_NAME = "/season_data.csv";
 
-  private Map<Integer, Map<String, SeasonData>> database = new HashMap<>();
+  private static final int WON_LOSS_PERCENTAGE_NUMBER_OF_FIELDS = 6;
+  private static final String WON_LOST_PERCENTAGE_FILE_NAME = "/won_lost_percentage.csv";
+
+  private final Map<Integer, Map<String, SeasonData>> database = new HashMap<>();
 
 
   public SeasonDataFlatFileDao() {
     loadData(database);
-  }
-
-  private static void loadData(Map<Integer, Map<String, SeasonData>> database) {
-    String databaseFileName = FILE_NAME;
-    InputStream inputStream = SeasonDataFlatFileDao.class.getResourceAsStream(databaseFileName);
-    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
-      CSVReader csvReader = new CSVReader(bufferedReader);
-      csvReader.readNext(); // Read header
-      String[] line = csvReader.readNext();
-      while (line != null) {
-        if (line.length == NUMBER_OF_FIELDS) {
-          SeasonData seasonData = parseLine(line);
-          Map<String, SeasonData> teamSeasonDataMap = database.computeIfAbsent(seasonData.getYear(), k -> new HashMap<>());
-          teamSeasonDataMap.put(seasonData.getTeamName(), seasonData);
-        } else {
-          throw new RuntimeException(String.format("Expected %d fields, got %d instead.", NUMBER_OF_FIELDS, line.length));
-        }
-        line = csvReader.readNext();
-      }
-    } catch (IOException e) {
-      String message = String.format("Error reading database file name '%s': %s", databaseFileName, e.getLocalizedMessage());
-      log.error(message, e);
-      throw new RuntimeException(message, e);
-    }
+    updateWonLostPercentage(database);
   }
 
   @Override
@@ -70,7 +50,59 @@ public class SeasonDataFlatFileDao implements SeasonDataDao {
     return teamSeasonDataMap.get(teamName);
   }
 
-  private static SeasonData parseLine(final String[] line) {
+  private static void loadData(final Map<Integer, Map<String, SeasonData>> database) {
+    InputStream inputStream = SeasonDataFlatFileDao.class.getResourceAsStream(SeasonDataFlatFileDao.SEASON_DATA_FILE_NAME);
+    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+      CSVReader csvReader = new CSVReader(bufferedReader);
+      csvReader.readNext(); // Read header
+      String[] line = csvReader.readNext();
+      while (line != null) {
+        if (line.length == SEASON_DATA_NUMBER_OF_FIELDS) {
+          SeasonData seasonData = parseSeasonDataFileLine(line);
+          Map<String, SeasonData> teamSeasonDataMap = database.computeIfAbsent(seasonData.getYear(), k -> new HashMap<>());
+          teamSeasonDataMap.put(seasonData.getTeamName(), seasonData);
+        } else {
+          throw new RuntimeException(String.format("Expected %d fields, got %d instead.", SEASON_DATA_NUMBER_OF_FIELDS, line.length));
+        }
+        line = csvReader.readNext();
+      }
+    } catch (IOException e) {
+      String message = String.format("Error reading database file name '%s': %s", SeasonDataFlatFileDao.SEASON_DATA_FILE_NAME, e.getLocalizedMessage());
+      log.error(message, e);
+      throw new RuntimeException(message, e);
+    }
+  }
+
+  private static void updateWonLostPercentage(final Map<Integer, Map<String, SeasonData>> database) {
+    InputStream inputStream = SeasonDataFlatFileDao.class.getResourceAsStream(SeasonDataFlatFileDao.WON_LOST_PERCENTAGE_FILE_NAME);
+    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+      CSVReader csvReader = new CSVReader(bufferedReader);
+      csvReader.readNext(); // Read header
+      String[] line = csvReader.readNext();
+      while (line != null) {
+        if (line.length == WON_LOSS_PERCENTAGE_NUMBER_OF_FIELDS) {
+          SeasonData wlSeasonData = parseWonLossPercentageDataFileLine(line);
+          Map<String, SeasonData> teamSeasonDataMap = database.get(wlSeasonData.getYear());
+          String teamName = wlSeasonData.getTeamName();
+          if (teamSeasonDataMap.containsKey(teamName)) {
+            SeasonData seasonData = teamSeasonDataMap.get(teamName);
+            seasonData.setWonLostPercentage(wlSeasonData.getWonLostPercentage());
+          } else {
+            throw new RuntimeException(String.format("Could not find team: %s in team season data map. Cannot continue.", teamName));
+          }
+        } else {
+          throw new RuntimeException(String.format("Expected %d fields, got %d instead.", WON_LOSS_PERCENTAGE_NUMBER_OF_FIELDS, line.length));
+        }
+        line = csvReader.readNext();
+      }
+    } catch (IOException e) {
+      String message = String.format("Error reading database file name '%s': %s", SeasonDataFlatFileDao.SEASON_DATA_FILE_NAME, e.getLocalizedMessage());
+      log.error(message, e);
+      throw new RuntimeException(message, e);
+    }
+  }
+
+  private static SeasonData parseSeasonDataFileLine(final String[] line) {
     SeasonData seasonData = new SeasonData();
     seasonData.setYear(Integer.parseInt(line[0]));
     seasonData.setTeamName(StringUtils.trim(line[1]));
@@ -100,6 +132,15 @@ public class SeasonDataFlatFileDao implements SeasonDataDao {
     seasonData.setTurnoversPerGame(BigDecimal.valueOf(Double.parseDouble(nice(line[22]))));
     seasonData.setFoulsPerGame(BigDecimal.valueOf(Double.parseDouble(nice(line[23]))));
     seasonData.setNumDq(BigDecimal.valueOf(Double.parseDouble(nice(line[24]))));
+
+    return seasonData;
+  }
+
+  private static SeasonData parseWonLossPercentageDataFileLine(final String[] line) {
+    SeasonData seasonData = new SeasonData();
+    seasonData.setYear(Integer.parseInt(line[1]));
+    seasonData.setTeamName(StringUtils.trim(line[2]));
+    seasonData.setWonLostPercentage(BigDecimal.valueOf(Double.parseDouble(nice(line[5]))));
 
     return seasonData;
   }
