@@ -90,7 +90,7 @@ public abstract class TournamentRunnerPlugin {
     return ret;
   }
 
-  static Optional<GameCoordinate> parseTournamentTemplateLine(final String line) {
+  public static Optional<GameCoordinate> parseTournamentTemplateLine(final String line) {
     Optional<GameCoordinate> ret;
     // A line looks like this:
     // [0,0,0],[0,0,1]
@@ -196,7 +196,7 @@ public abstract class TournamentRunnerPlugin {
   /**
    * Return the tournament year handled by the plugin subclass
    */
-  protected abstract Integer getTournamentYear();
+  public abstract Integer getTournamentYear();
 
   /**
    * Build the TeamCoordinate->SeasonData map, specific to a tournament year.

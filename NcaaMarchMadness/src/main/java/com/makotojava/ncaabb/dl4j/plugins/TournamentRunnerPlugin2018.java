@@ -14,7 +14,7 @@ public class TournamentRunnerPlugin2018 extends TournamentRunnerPlugin {
   }
 
   @Override
-  protected Integer getTournamentYear() {
+  public Integer getTournamentYear() {
     return 2018;
   }
 
