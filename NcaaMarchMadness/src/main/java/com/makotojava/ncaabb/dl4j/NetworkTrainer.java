@@ -49,6 +49,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -155,6 +156,10 @@ public class NetworkTrainer {
       // Get the weight updater function
       IUpdater updater = scanUpdaterFunction(scanner, networkParameters.getUpdater());
       networkParameters.setUpdater(updater);
+      //
+      // Get the L2 Regularization Lambda value
+      double l2RegularizationLambda = scanL2RegularizationLambda(scanner, networkParameters.getL2RegularizationLambda());
+      networkParameters.setL2RegularizationLambda(l2RegularizationLambda);
     } else {
       log.error("No data elements selected. Cannot train the network.");
     }
@@ -251,10 +256,16 @@ public class NetworkTrainer {
 //    DataNormalization normalizer = new NormalizerMinMaxScaler(-1, 1);
     normalizer.fit(trainingData);           // Collect the statistics (mean/stdev) from the training data. This does not modify the input data
     normalizer.transform(trainingData);     // Apply normalization to the training data
-//    double[][] trainingDataFeatures = trainingData.getFeatures().toDoubleMatrix();
-//    for (double[] feature : trainingDataFeatures) {
-//      log.debug(String.format("normalizeTrainingData(): Training Data:\n%s", Arrays.toString(feature)));
-//    }
+    double[][] trainingDataFeatures = trainingData.getFeatures().toDoubleMatrix();
+    // Dump out a few records as a sanity check
+    int sampleSize = 5;
+    int sampleCount = 0;
+    for (double[] feature : trainingDataFeatures) {
+      if (sampleCount++ == sampleSize) {
+        break;
+      }
+      log.debug(String.format("normalizeTrainingData(): Training Data:\n%s", Arrays.toString(feature)));
+    }
     normalizer.transform(testData);         // Apply normalization to the test data. This is using statistics calculated from the *training* set
 //    double[][] testDataFeatures = testData.getFeatures().toDoubleMatrix();
 //    for (double[] feature : testDataFeatures) {
@@ -270,7 +281,7 @@ public class NetworkTrainer {
       .activation(networkParameters.getActivationFunction())
       .weightInit(networkParameters.getWeightInit())
       .updater(networkParameters.getUpdater())
-      .l2(0.00001);
+      .l2(networkParameters.getL2RegularizationLambda());
     NeuralNetConfiguration.ListBuilder listBuilder = builder.list();
     int[] networkLayout = Networks.parseNetworkStructure(networkParameters.getNetworkLayout());
     for (int index = 0; index < networkLayout.length - 2; index++) {
@@ -436,6 +447,28 @@ public class NetworkTrainer {
   private static List<DataElementMenuChoice> scanDataElementChoice(final BufferedReader scanner, final List<DataElementMenuChoice> choices) throws IOException {
     List<DataElementMenuChoice> ret;
     ret = DataElementMenuChoice.menu(scanner, choices);
+    return ret;
+  }
+
+  private static Double scanL2RegularizationLambda(final BufferedReader scanner, final Double l2RegularizationLambda) throws IOException {
+    Double ret = l2RegularizationLambda;
+    String userInput = null;
+    while (StringUtils.isEmpty(userInput)) {
+      System.out.println("Enter the L2 Regularization Lambda value: ");
+      if (l2RegularizationLambda != null) {
+        System.out.println("Press enter to use the value you used last time: " + l2RegularizationLambda);
+      }
+      userInput = scanner.readLine();
+      if (StringUtils.isEmpty(userInput)) {
+        break;
+      } else if (StringUtils.isNumeric(StringUtils.remove(userInput, '.'))) {
+        ret = Double.parseDouble(userInput);
+      } else {
+        String message = String.format("Not a valid value for L2 Regularization Lambda value: %s", userInput);
+        log.warn(message);
+        ret = null;
+      }
+    }
     return ret;
   }
 
