@@ -1,6 +1,5 @@
 package com.makotojava.ncaabb.dl4j;
 
-import com.makotojava.ncaabb.util.NetworkUtils;
 import org.apache.log4j.Logger;
 import org.deeplearning4j.util.ModelSerializer;
 
@@ -40,20 +39,7 @@ public class NetworkPersister {
     byte networkNumber = KEEP_LOOPING;
     while (networkNumber == KEEP_LOOPING && !networkCandidates.isEmpty()) {
       System.out.printf("Enter the number of the network you want to %s (enter 0 to quit):%n", action);
-      System.out.println("Network#         When Trained  Accuracy                    Layer Structure  Saved?                Years (Training)                       Years (Eval)");
-      int index = 0;
-      for (NetworkCandidate networkCandidate : networkCandidates) {
-        NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-        System.out.printf("%8d%21s%9.2f%%%35s%5s%35s%35s%n",
-          index + 1,
-          networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
-          networkParameters.getNetworkAccuracy() * 100.0,
-          networkParameters.getNetworkLayout(),
-          networkParameters.isNetworkSaved() ? "Y": "N",
-          networkParameters.getTrainingYearsString(),
-          networkParameters.getEvaluationYearsString());
-        index++;
-      }
+      NetworkUtils.displayNetworkList(networkCandidates);
       System.out.println("==> ");
       if (scanner.hasNextByte()) {
         networkNumber = scanner.nextByte();
@@ -99,7 +85,7 @@ public class NetworkPersister {
   private static boolean saveNetwork(final NetworkCandidate networkCandidate) {
     boolean ret = false;
     NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-    String networkFileName = NetworkUtils.fetchNetworkDirectoryAndCreateIfNecessary() + File.separatorChar +
+    String networkFileName = com.makotojava.ncaabb.util.NetworkUtils.fetchNetworkDirectoryAndCreateIfNecessary() + File.separatorChar +
       generateNetworkFileNameBase(networkCandidate) + ".zip";
     System.out.printf("Saving network: %s as %s%n", networkParameters.getNetworkLayout(), networkFileName);
     try {

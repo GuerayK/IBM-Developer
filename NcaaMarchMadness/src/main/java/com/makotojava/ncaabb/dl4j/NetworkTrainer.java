@@ -237,26 +237,9 @@ public class NetworkTrainer {
     networkParameters.setNetworkAccuracy(eval.accuracy());
     log.info(String.format("Evaluator stats: %s", eval.stats()));
     log.info(String.format("Network accuracy: %f%%", eval.accuracy() * 100.0));
-    printNetworkInfo(networkParameters);
+    log.info(networkParameters);
     log.info("Training network...DONE");
     return model;
-  }
-
-  private static void printNetworkInfo(final NetworkParameters networkParameters) {
-    final String sb = String.format("Network info                :%n") +
-            String.format("\tNetwork structure         : %s%n", networkParameters.getNetworkLayout()) +
-            String.format("\tTraining Years            : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(0), ',')) +
-            String.format("\tEvaluation Years          : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(1), ',')) +
-            String.format("\tActivation function       : %s%n", networkParameters.getActivationFunction().name()) +
-            String.format("\tUpdater function          : %s%n", networkParameters.getUpdater()) +
-            String.format("\tLoss function             : %s%n", networkParameters.getLossFunction()) +
-            String.format("\tWeight init function      : %s%n", networkParameters.getWeightInit()) +
-            String.format("\tNumber of inputs          : %d%n", networkParameters.getNumberOfInputs()) +
-            String.format("\tNumber of outputs         : %d%n", networkParameters.getNumberOfOutputs()) +
-            String.format("\tNumber of training epochs : %d%n", networkParameters.getNumberOfEpochs()) +
-            String.format("\tNetwork accuracy          : %5.5f%%%n", networkParameters.getNetworkAccuracy() * 100.0) +
-            String.format("\tData Elements             : %s%n", StringUtils.join(networkParameters.getSelectedElements(), ','));
-    log.info(sb);
   }
 
   private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData) {

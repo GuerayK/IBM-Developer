@@ -6,6 +6,7 @@ public enum MainMenuChoice {
   EVALUATE_NETWORK("Evaluate a trained neural network", 2),
   RUN_NETWORK("Run a trained neural network", 3),
   PERSIST_UNSAVED_NETWORKS("Persist unsaved neural network(s)", 4),
+  LIST_SAVED_NETWORKS("List saved networks", 5),
   QUIT("Quit the program", 0);
 
   private String displayValue;

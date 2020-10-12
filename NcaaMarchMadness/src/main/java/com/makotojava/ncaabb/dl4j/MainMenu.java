@@ -130,6 +130,9 @@ public class MainMenu {
           NetworkPersister.persistNetworks(scanner, unsavedNetworks);
         }
         break;
+      case LIST_SAVED_NETWORKS:
+        NetworkUtils.displayNetworks();
+        break;
     }
     return ret;
   }

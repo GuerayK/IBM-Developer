@@ -250,5 +250,23 @@ public class NetworkParameters implements Serializable {
   public String getEvaluationYearsString() {
     return listToCsvString(getYearsToTrainAndEvaluateNetwork().get(1));
   }
+  
+  public String toString() {
+      final String sb =
+        String.format("Network info%n") +
+        String.format("\tNetwork structure         : %s%n", getNetworkLayout()) +
+        String.format("\tTraining Years            : %s%n", StringUtils.join(getYearsToTrainAndEvaluateNetwork().get(0), ',')) +
+        String.format("\tEvaluation Years          : %s%n", StringUtils.join(getYearsToTrainAndEvaluateNetwork().get(1), ',')) +
+        String.format("\tActivation function       : %s%n", getActivationFunction().name()) +
+        String.format("\tUpdater function          : %s%n", getUpdater()) +
+        String.format("\tLoss function             : %s%n", getLossFunction()) +
+        String.format("\tWeight init function      : %s%n", getWeightInit()) +
+        String.format("\tNumber of inputs          : %d%n", getNumberOfInputs()) +
+        String.format("\tNumber of outputs         : %d%n", getNumberOfOutputs()) +
+        String.format("\tNumber of training epochs : %d%n", getNumberOfEpochs()) +
+        String.format("\tNetwork accuracy          : %5.5f%%%n", getNetworkAccuracy() * 100.0) +
+        String.format("\tData Elements             : %s%n", StringUtils.join(getSelectedElements(), ','));
+      return sb.toString();
+  }
 
 }
