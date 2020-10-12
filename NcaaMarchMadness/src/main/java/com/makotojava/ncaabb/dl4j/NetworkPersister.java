@@ -1,5 +1,7 @@
 package com.makotojava.ncaabb.dl4j;
 
+import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
+import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
 import org.apache.log4j.Logger;
 import org.deeplearning4j.util.ModelSerializer;
 

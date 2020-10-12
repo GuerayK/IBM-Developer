@@ -3,10 +3,10 @@ package com.makotojava.ncaabb.dl4j.menus;
 public enum MainMenuChoice {
   UNKNOWN("That is not a choice", -1),
   TRAIN_NETWORK("Train a new neural network", 1),
-  EVALUATE_NETWORK("Evaluate a trained neural network", 2),
-  RUN_NETWORK("Run a trained neural network", 3),
-  PERSIST_UNSAVED_NETWORKS("Persist unsaved neural network(s)", 4),
-  LIST_SAVED_NETWORKS("List saved networks", 5),
+  PERSIST_UNSAVED_NETWORKS("Persist unsaved neural network(s)", 2),
+  LIST_SAVED_NETWORKS("List saved networks", 3),
+  RUN_NETWORK("Run a trained neural network", 4),
+  EVALUATE_NETWORK("Evaluate a trained neural network", 6),
   QUIT("Quit the program", 0);
 
   private String displayValue;

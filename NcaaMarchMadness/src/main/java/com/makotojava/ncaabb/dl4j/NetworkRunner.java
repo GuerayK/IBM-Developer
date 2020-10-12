@@ -1,5 +1,10 @@
 package com.makotojava.ncaabb.dl4j;
 
+import com.makotojava.ncaabb.dl4j.model.GameCoordinate;
+import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
+import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
+import com.makotojava.ncaabb.dl4j.plugins.TournamentRunnerPlugin;
+import com.makotojava.ncaabb.dl4j.plugins.TournamentRunnerPlugin2018;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;

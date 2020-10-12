@@ -1,6 +1,12 @@
-package com.makotojava.ncaabb.dl4j;
+package com.makotojava.ncaabb.dl4j.plugins;
 
 import com.makotojava.ncaabb.dao.SeasonDataDao;
+import com.makotojava.ncaabb.dl4j.NetworkPersister;
+import com.makotojava.ncaabb.dl4j.NetworkTrainer;
+import com.makotojava.ncaabb.dl4j.model.GameCoordinate;
+import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
+import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
+import com.makotojava.ncaabb.dl4j.model.TeamCoordinate;
 import com.makotojava.ncaabb.model.SeasonData;
 import com.makotojava.ncaabb.util.NetworkUtils;
 import com.opencsv.CSVReader;

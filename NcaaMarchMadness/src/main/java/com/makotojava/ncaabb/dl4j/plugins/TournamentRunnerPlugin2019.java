@@ -1,5 +1,6 @@
-package com.makotojava.ncaabb.dl4j;
+package com.makotojava.ncaabb.dl4j.plugins;
 
+import com.makotojava.ncaabb.dl4j.model.TeamCoordinate;
 import com.makotojava.ncaabb.model.SeasonData;
 import com.makotojava.ncaabb.util.NetworkUtils;
 import org.springframework.context.ApplicationContext;

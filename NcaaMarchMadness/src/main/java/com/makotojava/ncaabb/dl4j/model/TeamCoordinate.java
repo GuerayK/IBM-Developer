@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.dl4j;
+package com.makotojava.ncaabb.dl4j.model;
 
 import java.util.ArrayList;
 import java.util.List;

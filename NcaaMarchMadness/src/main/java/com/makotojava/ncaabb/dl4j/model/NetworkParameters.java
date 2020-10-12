@@ -1,4 +1,4 @@
-package com.makotojava.ncaabb.dl4j;
+package com.makotojava.ncaabb.dl4j.model;
 
 import com.makotojava.ncaabb.dl4j.menus.DataElementMenuChoice;
 import org.apache.commons.lang3.StringUtils;

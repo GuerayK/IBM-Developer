@@ -4,6 +4,8 @@ import com.makotojava.ncaabb.dao.SeasonDataDao;
 import com.makotojava.ncaabb.dao.TournamentParticipantDao;
 import com.makotojava.ncaabb.dao.TournamentResultDao;
 import com.makotojava.ncaabb.dl4j.menus.MainMenuChoice;
+import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
+import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
 import com.makotojava.ncaabb.springconfig.ApplicationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

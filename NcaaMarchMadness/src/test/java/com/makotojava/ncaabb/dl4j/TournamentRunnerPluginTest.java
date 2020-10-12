@@ -1,5 +1,8 @@
 package com.makotojava.ncaabb.dl4j;
 
+import com.makotojava.ncaabb.dl4j.model.GameCoordinate;
+import com.makotojava.ncaabb.dl4j.model.TeamCoordinate;
+import com.makotojava.ncaabb.dl4j.plugins.TournamentRunnerPlugin;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;

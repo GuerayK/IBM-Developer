@@ -8,6 +8,8 @@ import com.makotojava.ncaabb.dl4j.menus.DataElementMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.LossFunctionMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.UpdaterMenuChoice;
 import com.makotojava.ncaabb.dl4j.menus.WeightInitMenuChoice;
+import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
+import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
 import com.makotojava.ncaabb.generation.Networks;
 import com.makotojava.ncaabb.model.SeasonData;
 import com.makotojava.ncaabb.model.TournamentParticipant;
