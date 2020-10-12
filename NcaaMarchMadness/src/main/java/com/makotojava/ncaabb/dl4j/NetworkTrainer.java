@@ -237,8 +237,27 @@ public class NetworkTrainer {
     networkParameters.setNetworkAccuracy(eval.accuracy());
     log.info(String.format("Evaluator stats: %s", eval.stats()));
     log.info(String.format("Network accuracy: %f%%", eval.accuracy() * 100.0));
+    printNetworkInfo(networkParameters);
     log.info("Training network...DONE");
     return model;
+  }
+
+  private static void printNetworkInfo(final NetworkParameters networkParameters) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(String.format("Network info                :%n"));
+    sb.append(String.format("\tNetwork structure         : %s%n", networkParameters.getNetworkLayout()));
+    sb.append(String.format("\tTraining Years            : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(0), ',')));
+    sb.append(String.format("\tEvaluation Years          : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(1), ',')));
+    sb.append(String.format("\tActivation function       : %s%n", networkParameters.getActivationFunction().name()));
+    sb.append(String.format("\tUpdater function          : %s%n", networkParameters.getUpdater()));
+    sb.append(String.format("\tLoss function             : %s%n", networkParameters.getLossFunction()));
+    sb.append(String.format("\tWeight init function      : %s%n", networkParameters.getWeightInit()));
+    sb.append(String.format("\tNumber of inputs          : %d%n", networkParameters.getNumberOfInputs()));
+    sb.append(String.format("\tNumber of outputs         : %d%n", networkParameters.getNumberOfOutputs()));
+    sb.append(String.format("\tNumber of training epochs : %d%n", networkParameters.getNumberOfEpochs()));
+    sb.append(String.format("\tNetwork accuracy          : %5.5f%%%n", networkParameters.getNetworkAccuracy() * 100.0));
+    sb.append(String.format("\tData Elements             : %s%n", StringUtils.join(networkParameters.getSelectedElements(), ',')));
+    log.info(sb.toString());
   }
 
   private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData) {
