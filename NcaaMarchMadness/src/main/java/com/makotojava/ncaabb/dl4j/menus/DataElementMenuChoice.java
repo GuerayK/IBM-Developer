@@ -127,6 +127,8 @@ public enum DataElementMenuChoice {
       if (removeChoice) {
         log.debug("You chose to remove element: " + dataElementMenuChoice);
         dataElementMenuChoices.remove(dataElementMenuChoice);
+      } else if (dataElementMenuChoices.contains(dataElementMenuChoice)) {
+        System.out.printf("You already chose %s. To remove it use -%d%n.", dataElementMenuChoice.name(), dataElementMenuChoice.getOrdinal());
       } else {
         log.debug("You chose element: " + menuChoice.get());
         dataElementMenuChoices.add(dataElementMenuChoice);
