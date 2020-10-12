@@ -81,7 +81,7 @@ public class NetworkUtils {
         index + 1,
         networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
         networkParameters.getNetworkAccuracy() * 100.0,
-        StringUtils.abbreviate(networkParameters.getNetworkLayout(), 35),
+        StringUtils.abbreviate(networkParameters.getNetworkLayout(), 32),
         networkParameters.isNetworkSaved() ? "Y": "N",
         networkParameters.getTrainingYearsString(),
         networkParameters.getEvaluationYearsString());
