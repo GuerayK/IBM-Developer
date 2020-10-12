@@ -101,11 +101,11 @@ public class NetworkTrainer {
     // Train the network. If nothing goes wrong, return the trained network.
     log.info("Training network...");
     MultiLayerNetwork network = trainNetwork(configuration, networkParameters, trainingDataIterator, evaluationDataIterator);
-    ret = keepNetwork(scanner, network, networkParameters);
+    ret = keepNetwork(network, networkParameters);
     return ret;
   }
 
-  private static Optional<NetworkCandidate> keepNetwork(final Scanner scanner, final MultiLayerNetwork network, final NetworkParameters networkParameters) {
+  private static Optional<NetworkCandidate> keepNetwork(final MultiLayerNetwork network, final NetworkParameters networkParameters) {
     Optional<NetworkCandidate> ret;
     networkParameters.setWhenTrained(LocalDateTime.now());
     ret = Optional.of(new NetworkCandidate(networkParameters, network));
@@ -243,21 +243,20 @@ public class NetworkTrainer {
   }
 
   private static void printNetworkInfo(final NetworkParameters networkParameters) {
-    StringBuilder sb = new StringBuilder();
-    sb.append(String.format("Network info                :%n"));
-    sb.append(String.format("\tNetwork structure         : %s%n", networkParameters.getNetworkLayout()));
-    sb.append(String.format("\tTraining Years            : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(0), ',')));
-    sb.append(String.format("\tEvaluation Years          : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(1), ',')));
-    sb.append(String.format("\tActivation function       : %s%n", networkParameters.getActivationFunction().name()));
-    sb.append(String.format("\tUpdater function          : %s%n", networkParameters.getUpdater()));
-    sb.append(String.format("\tLoss function             : %s%n", networkParameters.getLossFunction()));
-    sb.append(String.format("\tWeight init function      : %s%n", networkParameters.getWeightInit()));
-    sb.append(String.format("\tNumber of inputs          : %d%n", networkParameters.getNumberOfInputs()));
-    sb.append(String.format("\tNumber of outputs         : %d%n", networkParameters.getNumberOfOutputs()));
-    sb.append(String.format("\tNumber of training epochs : %d%n", networkParameters.getNumberOfEpochs()));
-    sb.append(String.format("\tNetwork accuracy          : %5.5f%%%n", networkParameters.getNetworkAccuracy() * 100.0));
-    sb.append(String.format("\tData Elements             : %s%n", StringUtils.join(networkParameters.getSelectedElements(), ',')));
-    log.info(sb.toString());
+    final String sb = String.format("Network info                :%n") +
+            String.format("\tNetwork structure         : %s%n", networkParameters.getNetworkLayout()) +
+            String.format("\tTraining Years            : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(0), ',')) +
+            String.format("\tEvaluation Years          : %s%n", StringUtils.join(networkParameters.getYearsToTrainAndEvaluateNetwork().get(1), ',')) +
+            String.format("\tActivation function       : %s%n", networkParameters.getActivationFunction().name()) +
+            String.format("\tUpdater function          : %s%n", networkParameters.getUpdater()) +
+            String.format("\tLoss function             : %s%n", networkParameters.getLossFunction()) +
+            String.format("\tWeight init function      : %s%n", networkParameters.getWeightInit()) +
+            String.format("\tNumber of inputs          : %d%n", networkParameters.getNumberOfInputs()) +
+            String.format("\tNumber of outputs         : %d%n", networkParameters.getNumberOfOutputs()) +
+            String.format("\tNumber of training epochs : %d%n", networkParameters.getNumberOfEpochs()) +
+            String.format("\tNetwork accuracy          : %5.5f%%%n", networkParameters.getNetworkAccuracy() * 100.0) +
+            String.format("\tData Elements             : %s%n", StringUtils.join(networkParameters.getSelectedElements(), ','));
+    log.info(sb);
   }
 
   private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData) {
