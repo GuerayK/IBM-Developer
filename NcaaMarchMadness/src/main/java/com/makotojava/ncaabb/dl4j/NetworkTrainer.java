@@ -22,7 +22,6 @@ import org.datavec.api.records.metadata.RecordMetaData;
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.InputStreamInputSplit;
-import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -31,9 +30,6 @@ import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.ui.api.UIServer;
-import org.deeplearning4j.ui.model.stats.StatsListener;
-import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -230,22 +226,11 @@ public class NetworkTrainer {
     evaluationData.shuffle(); // Shake things up
     normalizeTrainingData(trainingData, evaluationData);
 
-    // Fire up the UI
-    // Initialize the user interface backend
-    UIServer uiServer = UIServer.getInstance();
-    // Configure where the network information (gradients, score vs. time etc) is to be stored. Here: store in memory.
-    StatsStorage statsStorage = new InMemoryStatsStorage(); // Alternative: new FileStatsStorage(File), for saving and loading later
-    // Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
-    uiServer.attach(statsStorage);
-
     int numberOfEpochs = networkParameters.getNumberOfEpochs();
     int printIterationIndex = numberOfEpochs / 10;
     MultiLayerNetwork model = new MultiLayerNetwork(configuration);
     model.init();
     model.setListeners(new ScoreIterationListener(printIterationIndex));
-    // Then add the StatsListener to collect this information from the network, as it trains
-    model.setListeners(new StatsListener(statsStorage));
-
     //
     // Fit the model
     for (int epoch = 0; epoch < networkParameters.getNumberOfEpochs(); epoch++) {
