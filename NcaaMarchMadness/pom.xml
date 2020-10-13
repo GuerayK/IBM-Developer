@@ -108,6 +108,11 @@
       <version>${dl4j-master.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-ui</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.neuroph</groupId>
       <artifactId>neuroph</artifactId>
       <version>${neuroph.version}</version>
