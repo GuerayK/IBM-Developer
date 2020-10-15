@@ -2,15 +2,16 @@ package com.makotojava.ncaabb.dl4j;
 
 import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
 import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.deeplearning4j.util.ModelSerializer;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 public class NetworkPersister {
 
@@ -21,8 +22,8 @@ public class NetworkPersister {
   public static final String ACTION_PERSIST = "persist";
   public static final String ACTION_WORK_WITH = "work with";
 
-  public static void persistNetworks(final Scanner scanner,
-                                     final List<NetworkCandidate> networkCandidateList) {
+  public static void persistNetworks(final BufferedReader scanner,
+                                     final List<NetworkCandidate> networkCandidateList) throws IOException {
     Optional<NetworkCandidate> networkCandidate = displayNetworkSelectionMenu(scanner, networkCandidateList, ACTION_PERSIST);
     networkCandidate.ifPresent(candidate -> {
       saveSelectedNetworkOrNot(scanner, candidate);
@@ -34,17 +35,18 @@ public class NetworkPersister {
    * Displays a menu of networks from the networkCandidates list, asks
    * the user to pick one, and returns their choice.
    */
-  public static Optional<NetworkCandidate> displayNetworkSelectionMenu(final Scanner scanner,
+  public static Optional<NetworkCandidate> displayNetworkSelectionMenu(final BufferedReader scanner,
                                                                        final List<NetworkCandidate> networkCandidates,
-                                                                       final String action) {
+                                                                       final String action) throws IOException {
     Optional<NetworkCandidate> ret = Optional.empty();
     byte networkNumber = KEEP_LOOPING;
     while (networkNumber == KEEP_LOOPING && !networkCandidates.isEmpty()) {
       System.out.printf("Enter the number of the network you want to %s (enter 0 to quit):%n", action);
       NetworkUtils.displayNetworkList(networkCandidates);
       System.out.println("==> ");
-      if (scanner.hasNextByte()) {
-        networkNumber = scanner.nextByte();
+      String line = scanner.readLine();
+      if (StringUtils.isNotEmpty(line)) {
+        networkNumber = Byte.parseByte(StringUtils.strip(line));
         if (networkNumber < 0 || networkNumber > networkCandidates.size()) {
           networkNumber = KEEP_LOOPING;
           continue;
@@ -53,7 +55,7 @@ public class NetworkPersister {
           break;
         }
       } else {
-        System.out.printf("%s is not a valid choice.%n", scanner.next());
+        System.out.printf("%s is not a valid choice.%n", line);
         networkNumber = KEEP_LOOPING;
       }
     }
@@ -63,12 +65,17 @@ public class NetworkPersister {
     return ret;
   }
 
-  private static void saveSelectedNetworkOrNot(final Scanner scanner,
+  private static void saveSelectedNetworkOrNot(final BufferedReader scanner,
                                                final NetworkCandidate networkCandidate) {
     String yesOrNo = null;
     while (yesOrNo == null) {
       System.out.printf("Save network %s (y/n)?%n", networkCandidate.getNetworkParameters().getNetworkLayout());
-      yesOrNo = scanner.next().trim();
+      try {
+        yesOrNo = StringUtils.strip(scanner.readLine());
+      } catch (IOException e) {
+        log.error(String.format("Error reading response: %s, network will not be saved.", e.getLocalizedMessage()));
+        yesOrNo = "n";
+      }
       if (yesOrNo.equalsIgnoreCase("y")) {
         if (saveNetwork(networkCandidate)) {
           log.info("Network saved.");

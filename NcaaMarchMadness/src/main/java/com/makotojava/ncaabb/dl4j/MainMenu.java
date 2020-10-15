@@ -7,16 +7,18 @@ import com.makotojava.ncaabb.dl4j.menus.MainMenuChoice;
 import com.makotojava.ncaabb.dl4j.model.NetworkCandidate;
 import com.makotojava.ncaabb.dl4j.model.NetworkParameters;
 import com.makotojava.ncaabb.springconfig.ApplicationConfig;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 public class MainMenu {
   private static final Logger log = LoggerFactory.getLogger(MainMenu.class);
@@ -44,8 +46,7 @@ public class MainMenu {
     MainMenu mainMenu = new MainMenu(applicationContext);
     //
     // No arguments - prompt the user for EVERYTHING
-    Scanner scanner = new Scanner(System.in);
-    scanner.useDelimiter("\n");
+    BufferedReader scanner = new BufferedReader(new InputStreamReader(System.in));
     //
     // Display main menu. When it terminates, so does program.
     MainMenuChoice menuChoice = MainMenuChoice.UNKNOWN;
@@ -71,7 +72,7 @@ public class MainMenu {
   /**
    * Display the main menu. Javadoc. Check.
    */
-  private static MainMenuChoice displayMainMenu(final Scanner scanner) {
+  private static MainMenuChoice displayMainMenu(final BufferedReader scanner) throws IOException {
     MainMenuChoice ret = MainMenuChoice.UNKNOWN;
     //
     // Show the options and camp out until they decide to quit
@@ -84,24 +85,25 @@ public class MainMenu {
       }
     }
     System.out.println("==> ");
-    if (scanner.hasNextByte()) {
+    String line = scanner.readLine();
+    if (StringUtils.isNotEmpty(line)) {
       //
       // Get the menu choice from the number entered by the user or UNKNOWN
-      ret = MainMenuChoice.from(scanner.nextByte());
+      ret = MainMenuChoice.from(Integer.parseInt(StringUtils.strip(line)));
     } else {
-      log.error("{}: {}", ret.getDisplayValue(), scanner.next());
+      log.error("{}: {}", ret.getDisplayValue(), line);
     }
     return ret;
   }
 
-  private MainMenuChoice processMainMenuChoice(final Scanner scanner, final MainMenuChoice menuChoice) throws IOException, InterruptedException {
+  private MainMenuChoice processMainMenuChoice(final BufferedReader scanner, final MainMenuChoice menuChoice) throws IOException, InterruptedException {
     MainMenuChoice ret = menuChoice;
     switch (menuChoice) {
       case QUIT:
         if (unsavedNetworks.size() > 0) {
           while (true) {
             System.out.println("You have unsaved networks. Are you sure you want to quit (y/n)?");
-            String input = scanner.next().trim();
+            String input = StringUtils.strip(scanner.readLine());
             if (input.equalsIgnoreCase("y")) {
               break;
             } else if (input.equalsIgnoreCase("n")) {
@@ -113,14 +115,14 @@ public class MainMenu {
         }
         break;
       case TRAIN_NETWORK:
-        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(scanner, networkParameters, seasonDataDao, tournamentResultDao, tournamentParticipantDao);
+        Optional<NetworkCandidate> trainedNetwork = NetworkTrainer.trainNetwork(networkParameters, seasonDataDao, tournamentResultDao, tournamentParticipantDao);
         trainedNetwork.ifPresent(networkCandidate -> {
           unsavedNetworks.add(networkCandidate);
           networkParameters = networkCandidate.getNetworkParameters();
         });
         break;
       case EVALUATE_NETWORK:
-        System.out.println("This is where you will evaluate a network someday!");
+        NetworkEvaluator.go(scanner, unsavedNetworks);
         break;
       case RUN_NETWORK:
         NetworkRunner.go(scanner, unsavedNetworks);

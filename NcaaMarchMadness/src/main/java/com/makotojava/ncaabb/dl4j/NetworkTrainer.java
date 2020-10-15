@@ -56,7 +56,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 
 public class NetworkTrainer {
@@ -74,14 +73,12 @@ public class NetworkTrainer {
     return tournamentYearSeasonDataMap.computeIfAbsent(tournamentYear, k -> new HashMap<>());
   }
 
-  public static Optional<NetworkCandidate> trainNetwork(final Scanner scanner,
-                                                        final NetworkParameters networkParametersGlobal,
+  public static Optional<NetworkCandidate> trainNetwork(final NetworkParameters networkParametersGlobal,
                                                         final SeasonDataDao seasonDataDao,
                                                         final TournamentResultDao tournamentResultDao,
                                                         final TournamentParticipantDao tournamentParticipantDao) throws IOException, InterruptedException {
     Optional<NetworkCandidate> ret;
     NetworkParameters networkParameters = (networkParametersGlobal == null) ? new NetworkParameters() : networkParametersGlobal.copy();
-    scanner.reset();
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     //
     // Fetch the network configuration parameters (reuse NetworkParameters so user doesn't have to re-enter everything each time)
@@ -315,7 +312,7 @@ public class NetworkTrainer {
     log.info("Evaluation data year(s): " + StringUtils.join(yearsToEvaluate, ','));
   }
 
-  private static void scanListOfValidYears(final BufferedReader scanner, final List<Integer> listOfYears) {
+  public static void scanListOfValidYears(final BufferedReader scanner, final List<Integer> listOfYears) {
     try {
       String userInput = null;
       while (StringUtils.isEmpty(userInput)) {

@@ -7,17 +7,18 @@ import com.makotojava.ncaabb.dl4j.plugins.TournamentRunnerPlugin;
 import com.makotojava.ncaabb.dl4j.plugins.TournamentRunnerPlugin2018;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 public class NetworkRunner {
 
   private static final Logger log = Logger.getLogger(NetworkRunner.class);
 
-  public static void go(final Scanner scanner, final List<NetworkCandidate> networkCandidateList) {
+  public static void go(final BufferedReader scanner, final List<NetworkCandidate> networkCandidateList) throws IOException {
     //
     // Load saved networks
     List<NetworkCandidate> savedNetworks = NetworkUtils.loadNetworks();
@@ -51,9 +52,9 @@ public class NetworkRunner {
     return ret;
   }
 
-  private static void promptUser(final Scanner scanner,
+  private static void promptUser(final BufferedReader scanner,
                                  final List<NetworkCandidate> allNetworks,
-                                 final List<TournamentRunnerPlugin> tournamentRunnerPlugins) {
+                                 final List<TournamentRunnerPlugin> tournamentRunnerPlugins) throws IOException {
     //
     // Get the network the user wants to run
     Optional<NetworkCandidate> selectedNetwork = NetworkPersister.displayNetworkSelectionMenu(scanner, allNetworks, NetworkPersister.ACTION_WORK_WITH);

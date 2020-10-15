@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 
 /**
@@ -57,8 +56,8 @@ public abstract class TournamentRunnerPlugin {
     this.seasonDataDao = applicationContext.getBean(SeasonDataDao.class);
   }
 
-  public static Optional<TournamentRunnerPlugin> selectPluginToRunMenu(final Scanner scanner,
-                                                                       final List<TournamentRunnerPlugin> tournamentRunnerPlugins) {
+  public static Optional<TournamentRunnerPlugin> selectPluginToRunMenu(final BufferedReader scanner,
+                                                                       final List<TournamentRunnerPlugin> tournamentRunnerPlugins) throws IOException {
     Optional<TournamentRunnerPlugin> ret = Optional.empty();
     // Ask the user which plugin they want to run and for what year, and if it's doable, return the plugin
     byte pluginNumber = KEEP_LOOPING;
@@ -70,8 +69,9 @@ public abstract class TournamentRunnerPlugin {
         System.out.printf("   %d %24s%n", index + 1, tournamentRunnerPlugin.getTournamentYear().toString());
         index++;
       }
-      if (scanner.hasNextByte()) {
-        pluginNumber = scanner.nextByte();
+      String line = scanner.readLine();
+      if (StringUtils.isNotEmpty(line)) {
+        pluginNumber = Byte.parseByte(StringUtils.strip(line));
         if (pluginNumber < 0 || pluginNumber > tournamentRunnerPlugins.size()) {
           pluginNumber = KEEP_LOOPING;
           continue;
@@ -80,7 +80,7 @@ public abstract class TournamentRunnerPlugin {
           break;
         }
       } else {
-        System.out.printf("%s is not a valid choice.%n", scanner.next());
+        System.out.printf("%s is not a valid choice.%n", line);
         pluginNumber = KEEP_LOOPING;
       }
     }
