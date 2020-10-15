@@ -73,11 +73,11 @@ public class NetworkUtils {
   }
 
   public static void displayNetworkList(final List<NetworkCandidate> networkCandidates) {
-    System.out.println("Network#         When Trained  Accuracy                    Layer Structure  Saved?                Years (Training)                       Years (Eval)");
+    System.out.println("Network#         When Trained  Accuracy                    Layer Structure  Saved?                Years (Training)                               Years (Eval)");
     int index = 0;
     for (NetworkCandidate networkCandidate : networkCandidates) {
       NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-      System.out.printf("%8d%21s%9.2f%%%35s%5s%35s%35s%n",
+      System.out.printf("%8d%21s%9.2f%%%35s%5s%45s%35s%n",
         index + 1,
         networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
         networkParameters.getNetworkAccuracy() * 100.0,
