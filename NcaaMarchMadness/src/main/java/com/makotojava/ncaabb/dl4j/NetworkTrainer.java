@@ -29,6 +29,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.optimize.listeners.PerformanceListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
@@ -172,38 +173,29 @@ public class NetworkTrainer {
                                                             final NetworkParameters networkParameters) throws IOException, InterruptedException {
     StringWriter stringWriter = new StringWriter();
     CSVWriter csvWriter = new CSVWriter(stringWriter);
-    Map<String, SeasonData> teamNameSeasonDataMap = new HashMap<>(); // Optimization - do not create data for the same team twice
     for (Integer year : yearsForTraining) {
       List<TournamentResult> tournamentResults = pullTournamentResults(year, tournamentResultDao);
       Collections.shuffle(tournamentResults); // Shake things up a little
       for (TournamentResult tournamentResult : tournamentResults) {
         String winningTeamName = tournamentResult.getWinningTeamName();
-        SeasonData seasonDataWinning = teamNameSeasonDataMap.get(winningTeamName);
-        if (seasonDataWinning == null) {
-          seasonDataWinning = pullSeasonData(year, winningTeamName, seasonDataDao);
-          teamNameSeasonDataMap.put(winningTeamName, seasonDataWinning);
-          TournamentParticipant tournamentParticipant = tournamentParticipantDao.fetchByYear(winningTeamName, year);
-          //
-          // Transform the data, then write out the data
-          List<Double> rowWinDouble = writeSeasonData(seasonDataWinning, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
-          String[] rowWinString = networkParameters.transformRow(rowWinDouble, true);
-          csvWriter.writeNext(rowWinString);
+        SeasonData seasonDataWinning = pullSeasonData(year, winningTeamName, seasonDataDao);
+        TournamentParticipant tournamentParticipant = tournamentParticipantDao.fetchByYear(winningTeamName, year);
+        //
+        // Transform the data, then write out the data
+        List<Double> rowWinDouble = writeSeasonData(seasonDataWinning, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
+        String[] rowWinString = networkParameters.transformRow(rowWinDouble, true);
+        csvWriter.writeNext(rowWinString);
 //          log.debug(String.format("Winning Team: %s (%d), data: %s", winningTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowWinString)));
-        }
         // Losing team
         String losingTeamName = tournamentResult.getLosingTeamName();
-        SeasonData seasonDataLosing = teamNameSeasonDataMap.get(losingTeamName);
-        if (seasonDataLosing == null) {
-          seasonDataLosing = pullSeasonData(year, losingTeamName, seasonDataDao);
-          teamNameSeasonDataMap.put(losingTeamName, seasonDataLosing);
-          TournamentParticipant tournamentParticipant = tournamentParticipantDao.fetchByYear(losingTeamName, year);
-          //
-          // Transform the data, then write out the data
-          List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
-          String[] rowLossString = networkParameters.transformRow(rowLossDouble, true);
-          csvWriter.writeNext(rowLossString);
+        SeasonData seasonDataLosing = pullSeasonData(year, losingTeamName, seasonDataDao);
+        tournamentParticipant = tournamentParticipantDao.fetchByYear(losingTeamName, year);
+        //
+        // Transform the data, then write out the data
+        List<Double> rowLossDouble = writeSeasonData(seasonDataLosing, tournamentParticipant.getNumberOfVictories().doubleValue(), true);
+        String[] rowLossString = networkParameters.transformRow(rowLossDouble, true);
+        csvWriter.writeNext(rowLossString);
 //          log.debug(String.format("Losing Team: %s (%d), data: %s", losingTeamName, tournamentParticipant.getNumberOfVictories(), Arrays.toString(rowLossString)));
-        }
       }
     }
     //
@@ -231,6 +223,7 @@ public class NetworkTrainer {
     MultiLayerNetwork model = new MultiLayerNetwork(configuration);
     model.init();
     model.setListeners(new ScoreIterationListener(printIterationIndex));
+    model.setListeners(new PerformanceListener(printIterationIndex, true));
     //
     // Fit the model
     for (int epoch = 0; epoch < networkParameters.getNumberOfEpochs(); epoch++) {
