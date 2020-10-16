@@ -122,7 +122,7 @@ public class MainMenu {
         });
         break;
       case EVALUATE_NETWORK:
-        NetworkEvaluator.go(scanner, unsavedNetworks);
+        NetworkEvaluator.go(scanner, unsavedNetworks, seasonDataDao, tournamentResultDao, tournamentParticipantDao);
         break;
       case RUN_NETWORK:
         NetworkRunner.go(scanner, unsavedNetworks);
