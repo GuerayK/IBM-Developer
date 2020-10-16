@@ -73,18 +73,20 @@ public class NetworkUtils {
   }
 
   public static void displayNetworkList(final List<NetworkCandidate> networkCandidates) {
-    System.out.println("Network#         When Trained  Accuracy                    Layer Structure  Saved?                Years (Training)                               Years (Eval)");
+    System.out.printf("%9s%21s%11s(%%)%35s%10s%45s%30s%15s%n",
+      "Network #", "When Trained", "Accuracy", "Layer Structure", "Saved?", "Years (Training)", "Updater", "No. Epochs");
     int index = 0;
     for (NetworkCandidate networkCandidate : networkCandidates) {
       NetworkParameters networkParameters = networkCandidate.getNetworkParameters();
-      System.out.printf("%8d%21s%9.2f%%%35s%5s%45s%35s%n",
+      System.out.printf("%9d%21s%13.2f%%%35s%10s%45s%30s%15d%n",
         index + 1,
         networkParameters.getWhenTrained().format(DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm")),
         networkParameters.getNetworkAccuracy() * 100.0,
         StringUtils.abbreviate(networkParameters.getNetworkLayout(), 32),
         networkParameters.isNetworkSaved() ? "Y": "N",
         networkParameters.getTrainingYearsString(),
-        networkParameters.getEvaluationYearsString());
+        StringUtils.abbreviate(networkParameters.getUpdater().toString(), 24),
+        networkParameters.getNumberOfEpochs());
       index++;
     }
   }
