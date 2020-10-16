@@ -19,6 +19,8 @@ import org.datavec.api.split.InputStreamInputSplit;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.shade.guava.io.CharStreams;
 import org.springframework.context.ApplicationContext;
 
@@ -273,7 +275,10 @@ public abstract class TournamentRunnerPlugin {
       // Compute RecordReaderDataSetIterator from the two sets of season data
       Optional<RecordReaderDataSetIterator> recordReaderDataSetIteratorMaybe = computeRecordIterator(homeTeamSeasonData, awayTeamSeasonData, networkCandidate.getNetworkParameters());
       recordReaderDataSetIteratorMaybe.ifPresent(readerDataSetIterator -> {
-        INDArray indArrayResults = network.output(recordReaderDataSetIteratorMaybe.get());
+        DataNormalization normalizer = networkCandidate.getNetworkParameters().getNormalizer();
+        DataSet tournamentData = readerDataSetIterator.next();
+        normalizer.transform(tournamentData);
+        INDArray indArrayResults = network.output(tournamentData.getFeatures());
         //
         // Figure out who we declare the winner and compute their TeamCoordinates according to the algorithm
         TeamCoordinate winningTeamCoordinate = computeWinner(indArrayResults.toDoubleMatrix(), homeTeamCoordinate, awayTeamCoordinate);
@@ -371,10 +376,10 @@ public abstract class TournamentRunnerPlugin {
     Optional<RecordReaderDataSetIterator> ret;
     //
     // Compute one row of data with home team first
-    String[] home = networkParameters.transformRow(NetworkTrainer.writeSeasonData(homeTeamSeasonData), false);
+    String[] home = networkParameters.transformRow(NetworkTrainer.writeSeasonData(homeTeamSeasonData));
     //
     // Compute another row of data with away team first
-    String[] away = networkParameters.transformRow(NetworkTrainer.writeSeasonData(awayTeamSeasonData), false);
+    String[] away = networkParameters.transformRow(NetworkTrainer.writeSeasonData(awayTeamSeasonData));
     //
     // Wrap both rows in a CSVRecordReader, with all the bells and whistles and return the appropriate iterator
     StringBuilder stringSource = new StringBuilder();

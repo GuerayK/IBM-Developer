@@ -163,7 +163,7 @@ public class NetworkTrainer {
     }
   }
 
-  private static RecordReaderDataSetIterator createIterator(final List<Integer> yearsForTraining,
+  public static RecordReaderDataSetIterator createIterator(final List<Integer> yearsForTraining,
                                                             final SeasonDataDao seasonDataDao,
                                                             final TournamentResultDao tournamentResultDao,
                                                             final TournamentParticipantDao tournamentParticipantDao,
@@ -213,7 +213,9 @@ public class NetworkTrainer {
     trainingData.shuffle(); // Shake things up
     DataSet evaluationData = evaluationDataIterator.next();
     evaluationData.shuffle(); // Shake things up
-    normalizeTrainingData(trainingData, evaluationData);
+    DataNormalization normalizer = new NormalizerStandardize();
+    normalizeTrainingData(trainingData, evaluationData, normalizer);
+    networkParameters.setNormalizer(normalizer);
 
     int numberOfEpochs = networkParameters.getNumberOfEpochs();
     int printIterationIndex = numberOfEpochs / 10;
@@ -239,11 +241,8 @@ public class NetworkTrainer {
     return model;
   }
 
-  private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData) {
+  private static void normalizeTrainingData(final DataSet trainingData, final DataSet testData, final DataNormalization normalizer) {
     log.info("Normalizing data...");
-    DataNormalization normalizer = new NormalizerStandardize();
-//    DataNormalization normalizer = new NormalizerMinMaxScaler();
-//    DataNormalization normalizer = new NormalizerMinMaxScaler(-1, 1);
     normalizer.fit(trainingData);           // Collect the statistics (mean/stdev) from the training data. This does not modify the input data
     normalizer.transform(trainingData);     // Apply normalization to the training data
     double[][] trainingDataFeatures = trainingData.getFeatures().toDoubleMatrix();
